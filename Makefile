@@ -264,3 +264,13 @@ format: ## Format code (requires spotless)
 version: ## Show project version
 	@echo "$(CYAN)$(PROJECT_NAME) version:$(NC)"
 	@$(MAVEN) help:evaluate -Dexpression=project.version -q -DforceStdout
+
+##@ DynamoDB
+
+dynamodb-create-tables: ## Create DynamoDB tables for local development/testing
+	@echo "$(CYAN)Creating DynamoDB tables (if not exist) for local development...$(NC)"
+	aws dynamodb create-table --table-name bookings --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>/dev/null || echo "bookings table exists or error"
+	aws dynamodb create-table --table-name customers --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>/dev/null || echo "customers table exists or error"
+	aws dynamodb create-table --table-name hotels --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>/dev/null || echo "hotels table exists or error"
+	aws dynamodb create-table --table-name rooms --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>/dev/null || echo "rooms table exists or error"
+	@echo "$(GREEN)✓ DynamoDB tables ensured$(NC)"

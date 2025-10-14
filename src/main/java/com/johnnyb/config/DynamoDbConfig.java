@@ -34,6 +34,7 @@ public class DynamoDbConfig {
             .region(Region.of(region))
             .credentialsProvider(StaticCredentialsProvider.create(
                 AwsBasicCredentials.create(accessKeyId, secretAccessKey)))
+            .httpClient(software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient.builder().build())
             .build();
     }
 

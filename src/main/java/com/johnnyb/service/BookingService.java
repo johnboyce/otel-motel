@@ -7,7 +7,6 @@ import org.jboss.logging.Logger;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 
@@ -31,7 +30,7 @@ public class BookingService {
 
     @PostConstruct
     void init() {
-        bookingTable = dynamoDb.table(TABLE_NAME, TableSchema.fromBean(Booking.class));
+        bookingTable = dynamoDb.table(TABLE_NAME, Booking.BOOKING_TABLE_SCHEMA);
     }
 
     public Booking save(Booking booking) {

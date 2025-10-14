@@ -7,7 +7,6 @@ import org.jboss.logging.Logger;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 
@@ -30,11 +29,15 @@ public class HotelService {
 
     @PostConstruct
     void init() {
-        hotelTable = dynamoDb.table(TABLE_NAME, TableSchema.fromBean(Hotel.class));
+        hotelTable = dynamoDb.table(TABLE_NAME, Hotel.HOTEL_TABLE_SCHEMA);
     }
 
     public Hotel save(Hotel hotel) {
         LOG.infof("Saving hotel: %s", hotel.getId());
+        // Prevent DynamoDB empty set error
+        if (hotel.getRoomIds() != null && hotel.getRoomIds().isEmpty()) {
+            hotel.setRoomIds(null);
+        }
         hotelTable.putItem(hotel);
         return hotel;
     }

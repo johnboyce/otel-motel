@@ -7,7 +7,6 @@ import org.jboss.logging.Logger;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 
@@ -29,11 +28,15 @@ public class CustomerService {
 
     @PostConstruct
     void init() {
-        customerTable = dynamoDb.table(TABLE_NAME, TableSchema.fromBean(Customer.class));
+        customerTable = dynamoDb.table(TABLE_NAME, Customer.CUSTOMER_TABLE_SCHEMA);
     }
 
     public Customer save(Customer customer) {
         LOG.infof("Saving customer: %s", customer.getId());
+        // Prevent DynamoDB empty set error
+        if (customer.getBookingIds() != null && customer.getBookingIds().isEmpty()) {
+            customer.setBookingIds(null);
+        }
         customerTable.putItem(customer);
         return customer;
     }
