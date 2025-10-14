@@ -54,6 +54,10 @@ make dev          # Start in development mode with hot reload
 
 ## 📚 Documentation
 
+- **[Quick Start Guide](docs/QUICKSTART.md)** - Get running in 5 minutes!
+- **[Testing Guide](docs/TESTING.md)** - Comprehensive test scenarios
+- **[GraphQL API Documentation](docs/graphql/README.md)** - Complete API reference
+- **[Documentation Index](docs/README.md)** - All documentation organized
 - **[Docker Configuration](docker/README.md)** - Container setup and OTEL Collector
 - **[ELK Stack Guide](elk/README.md)** - Elasticsearch, Logstash, Kibana setup
 - **[Bruno API Collection](bruno/README.md)** - GraphQL API testing
