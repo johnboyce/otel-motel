@@ -1,0 +1,81 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+  
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+  
+  resource:
+    attributes:
+      - key: service.name
+        value: otel-motel
+        action: upsert
+      - key: deployment.environment
+        value: dev
+        action: upsert
+
+exporters:
+  # Export logs to Elasticsearch
+  elasticsearch/logs:
+    endpoints: ["http://elasticsearch:9200"]
+    logs_index: otel-motel-logs
+    mapping:
+      mode: ecs
+    
+  # Export traces to Elasticsearch
+  elasticsearch/traces:
+    endpoints: ["http://elasticsearch:9200"]
+    traces_index: otel-motel-traces
+    mapping:
+      mode: ecs
+  
+  # Export metrics to Elasticsearch
+  elasticsearch/metrics:
+    endpoints: ["http://elasticsearch:9200"]
+    metrics_index: otel-motel-metrics
+    mapping:
+      mode: ecs
+  
+  # Logging exporter for debugging
+  logging:
+    verbosity: detailed
+
+  # Prometheus metrics exporter
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+extensions:
+  health_check:
+    endpoint: :13133
+  pprof:
+    endpoint: :1888
+  zpages:
+    endpoint: :55679
+
+service:
+  extensions: [health_check, pprof, zpages]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [elasticsearch/traces, logging]
+    
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [elasticsearch/metrics, prometheus, logging]
+    
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [elasticsearch/logs, logging]

@@ -41,5 +41,16 @@ nb-configuration.xml
 
 # Plugin directory
 /.quarkus/cli/plugins/
+
 # TLS Certificates
 .certs/
+
+# Docker volumes
+.docker/
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
