@@ -1,8 +1,16 @@
 # otel-motel
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+This project uses Quarkus, the Supersonic Subatomic Java Framework, with **OpenTelemetry** support for distributed tracing, metrics, and logs.
 
 If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+
+## OpenTelemetry Integration
+
+This application is configured with OpenTelemetry for observability. See [OTEL-SETUP.md](OTEL-SETUP.md) for detailed setup instructions including:
+
+- Configuring OpenTelemetry Collector
+- Running with Jaeger for distributed tracing
+- Testing the instrumented GraphQL endpoint
 
 ## Running the application in dev mode
 
