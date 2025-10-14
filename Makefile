@@ -194,8 +194,8 @@ db-console: ## Connect to PostgreSQL database
 
 db-reset: ## Reset database (drops and recreates)
 	@echo "$(RED)Resetting database...$(NC)"
-	@docker exec otel-motel-postgres psql -U otelmotel -c "DROP DATABASE IF EXISTS otelmotel;"
-	@docker exec otel-motel-postgres psql -U otelmotel -c "CREATE DATABASE otelmotel;"
+	@docker exec otel-motel-postgres psql -U otelmotel -d postgres -c "DROP DATABASE IF EXISTS otelmotel;"
+	@docker exec otel-motel-postgres psql -U otelmotel -d postgres -c "CREATE DATABASE otelmotel;"
 	@echo "$(GREEN)✓ Database reset$(NC)"
 
 ##@ Monitoring & Observability
