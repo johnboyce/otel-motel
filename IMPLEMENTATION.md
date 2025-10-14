@@ -218,13 +218,12 @@ make clean build    # Clean build
 ```
 otel-motel/
 ├── src/main/java/com/johnnyb/
-│   ├── entity/              # 4 JPA entities
+│   ├── entity/              # DynamoDB entities
 │   ├── graphql/             # GraphQL API
 │   └── service/             # Business logic
 ├── docker/                  # OTEL Collector config
 ├── elk/                     # ELK configuration
-│   ├── elasticsearch/       # Index templates
-│   └── logstash/           # Pipeline config
+│   └── elasticsearch/       # Index templates
 ├── bruno/                  # API test collection
 │   ├── Hotels/
 │   ├── Rooms/
@@ -242,7 +241,7 @@ otel-motel/
 ✅ **Build**: Clean compile and package
 ✅ **Dependencies**: All properly configured
 ✅ **Configuration**: ECS-compliant logging
-✅ **Infrastructure**: 5-service Docker stack
+✅ **Infrastructure**: 4-service Docker stack
 ✅ **API**: 16 GraphQL operations
 ✅ **Data**: Sample data auto-loads
 ✅ **Observability**: Full OTEL + ELK integration
@@ -256,15 +255,13 @@ otel-motel/
 ### Backend
 - Quarkus 3.27.0
 - Java 17
-- Hibernate ORM Panache
+- AWS SDK Enhanced DynamoDB Client
 - SmallRye GraphQL
-- PostgreSQL JDBC Driver
 
 ### Observability
 - OpenTelemetry SDK
 - OTEL Collector Contrib
 - Elasticsearch 8.11
-- Logstash 8.11
 - Kibana 8.11
 - ECS Logging
 

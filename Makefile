@@ -83,7 +83,7 @@ run-native: build-native ## Build and run native executable
 
 ##@ Docker & Infrastructure
 
-docker-up: ## Start all Docker services (PostgreSQL, ELK, OTEL Collector)
+docker-up: ## Start all Docker services (DynamoDB, ELK, OTEL Collector)
 	@echo "$(GREEN)Starting Docker services...$(NC)"
 	$(DOCKER_COMPOSE) up -d
 	@echo "$(GREEN)✓ Services started$(NC)"
