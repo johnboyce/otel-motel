@@ -89,11 +89,10 @@ docker-up: ## Start all Docker services (PostgreSQL, ELK, OTEL Collector)
 	@echo "$(GREEN)✓ Services started$(NC)"
 	@echo ""
 	@echo "$(CYAN)Services:$(NC)"
-	@echo "  PostgreSQL:     localhost:5432"
+	@echo "  DynamoDB:       localhost:4566"
 	@echo "  Elasticsearch:  $(ELASTICSEARCH_HOST)"
 	@echo "  Kibana:         $(KIBANA_HOST)"
 	@echo "  OTEL Collector: localhost:4318 (HTTP) / localhost:4317 (gRPC)"
-	@echo "  Logstash:       localhost:5044"
 	@echo ""
 	@echo "$(YELLOW)Run 'make elk-setup' to initialize Elasticsearch indices$(NC)"
 
@@ -111,7 +110,7 @@ docker-logs: ## Show logs from all Docker services
 	$(DOCKER_COMPOSE) logs -f
 
 docker-logs-elk: ## Show logs from ELK services only
-	$(DOCKER_COMPOSE) logs -f elasticsearch logstash kibana
+	$(DOCKER_COMPOSE) logs -f elasticsearch kibana
 
 docker-logs-otel: ## Show logs from OTEL Collector
 	$(DOCKER_COMPOSE) logs -f otel-collector
@@ -188,15 +187,19 @@ docs-serve: ## Serve documentation (requires Python)
 
 ##@ Database
 
-db-console: ## Connect to PostgreSQL database
-	@echo "$(GREEN)Connecting to database...$(NC)"
-	@docker exec -it otel-motel-postgres psql -U otelmotel -d otelmotel
+dynamodb-console: ## Open AWS CLI for DynamoDB
+	@echo "$(GREEN)Connecting to DynamoDB...$(NC)"
+	@echo "$(CYAN)Use 'awslocal dynamodb' commands$(NC)"
+	@docker exec -it otel-motel-dynamodb bash
 
-db-reset: ## Reset database (drops and recreates)
-	@echo "$(RED)Resetting database...$(NC)"
-	@docker exec otel-motel-postgres psql -U otelmotel -d postgres -c "DROP DATABASE IF EXISTS otelmotel;"
-	@docker exec otel-motel-postgres psql -U otelmotel -d postgres -c "CREATE DATABASE otelmotel;"
-	@echo "$(GREEN)✓ Database reset$(NC)"
+dynamodb-list-tables: ## List all DynamoDB tables
+	@echo "$(CYAN)DynamoDB tables:$(NC)"
+	@docker exec otel-motel-dynamodb awslocal dynamodb list-tables
+
+dynamodb-reset: ## Delete all DynamoDB tables
+	@echo "$(RED)Resetting DynamoDB tables...$(NC)"
+	@docker exec otel-motel-dynamodb bash -c "awslocal dynamodb list-tables --query 'TableNames[*]' --output text | xargs -n1 awslocal dynamodb delete-table --table-name" || true
+	@echo "$(GREEN)✓ DynamoDB reset$(NC)"
 
 ##@ Monitoring & Observability
 

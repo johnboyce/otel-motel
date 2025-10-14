@@ -1,22 +1,25 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:16-alpine
-    container_name: otel-motel-postgres
+  # DynamoDB Local (LocalStack)
+  dynamodb:
+    image: localstack/localstack:latest
+    container_name: otel-motel-dynamodb
     environment:
-      POSTGRES_DB: otelmotel
-      POSTGRES_USER: otelmotel
-      POSTGRES_PASSWORD: otelmotel123
+      SERVICES: dynamodb
+      DEBUG: 1
+      DATA_DIR: /tmp/localstack/data
+      DOCKER_HOST: unix:///var/run/docker.sock
     ports:
-      - "5432:5432"
+      - "4566:4566"   # LocalStack gateway
+      - "4571:4571"   # DynamoDB specific port
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - dynamodb_data:/tmp/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - otel-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U otelmotel"]
+      test: ["CMD-SHELL", "awslocal dynamodb list-tables || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -64,24 +67,6 @@ services:
       timeout: 10s
       retries: 5
 
-  # Logstash
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.11.1
-    container_name: otel-motel-logstash
-    volumes:
-      - ./elk/logstash/pipeline:/usr/share/logstash/pipeline
-      - ./elk/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
-    ports:
-      - "5044:5044"
-      - "9600:9600"
-    networks:
-      - otel-network
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    environment:
-      - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
-
   # OpenTelemetry Collector
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.91.0
@@ -101,7 +86,7 @@ services:
       - elasticsearch
 
 volumes:
-  postgres_data:
+  dynamodb_data:
     driver: local
   elasticsearch_data:
     driver: local

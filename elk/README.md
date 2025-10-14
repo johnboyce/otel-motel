@@ -1,6 +1,6 @@
 # ELK Stack Configuration
 
-This directory contains all configuration files and scripts for the ELK (Elasticsearch, Logstash, Kibana) stack.
+This directory contains all configuration files and scripts for Elasticsearch and Kibana integration with OpenTelemetry.
 
 ## Directory Structure
 
@@ -8,11 +8,6 @@ This directory contains all configuration files and scripts for the ELK (Elastic
 elk/
 ├── elasticsearch/
 │   └── setup-indices.sh      # Index template and ILM policy setup
-├── logstash/
-│   ├── config/
-│   │   └── logstash.yml      # Logstash configuration
-│   └── pipeline/
-│       └── logstash.conf     # Log processing pipeline
 └── README.md                 # This file
 ```
 
@@ -28,18 +23,6 @@ Central data store for logs, traces, and metrics with ECS-compliant schema.
 - `otel-motel-logs-*` - Application logs
 - `otel-motel-traces-*` - Distributed traces
 - `otel-motel-metrics-*` - Application metrics
-
-### Logstash
-**Version**: 8.11.1  
-**Ports**: 5044 (TCP), 8080 (HTTP)
-
-Processes and enriches log data before indexing to Elasticsearch.
-
-#### Features
-- JSON log parsing
-- ECS field mapping
-- Log enrichment with service metadata
-- Timestamp normalization
 
 ### Kibana
 **Version**: 8.11.1  
@@ -111,30 +94,14 @@ Creates index templates with:
 **Environment Variables**:
 - `ELASTICSEARCH_HOST` - Elasticsearch URL (default: http://localhost:9200)
 
-## Logstash Configuration
+## OpenTelemetry Integration
 
-### Pipeline (`logstash/pipeline/logstash.conf`)
+The OTEL Collector exports data directly to Elasticsearch using the elasticsearch exporter:
+- **Logs**: Exported to `otel-motel-logs` index
+- **Traces**: Exported to `otel-motel-traces` index
+- **Metrics**: Exported to `otel-motel-metrics` index
 
-**Input**:
-- TCP port 5044 (JSON lines)
-- HTTP port 8080 (JSON)
-
-**Filters**:
-- JSON parsing
-- ECS field mapping
-- Log level normalization
-- Timestamp parsing
-
-**Output**:
-- Elasticsearch with daily indices
-- Stdout for debugging (disable in production)
-
-### Config (`logstash/config/logstash.yml`)
-
-Basic Logstash settings:
-- HTTP API binding
-- Elasticsearch monitoring
-- Performance tuning
+No Logstash is required - OTEL Collector handles ECS formatting natively.
 
 ## Index Lifecycle Management
 
@@ -184,11 +151,6 @@ make elk-indices
 make elk-logs
 ```
 
-### View Logstash Logs
-```bash
-docker logs otel-motel-logstash -f
-```
-
 ## Troubleshooting
 
 ### Elasticsearch won't start
@@ -201,11 +163,6 @@ docker logs otel-motel-logstash -f
 - Wait 30-60 seconds for Kibana to start
 - Check logs: `docker logs otel-motel-kibana`
 
-### Logstash not receiving logs
-- Verify pipeline configuration: `docker logs otel-motel-logstash`
-- Check if port 5044 is accessible
-- Test with: `echo '{"test":"message"}' | nc localhost 5044`
-
 ### Indices not created
 - Run setup script: `make elk-setup`
 - Check Elasticsearch health: `make elk-health`
@@ -217,7 +174,6 @@ docker logs otel-motel-logstash -f
 - Single node Elasticsearch
 - No replication
 - 512MB heap for Elasticsearch
-- 256MB heap for Logstash
 
 ### For Production
 - Multi-node cluster
@@ -243,7 +199,7 @@ make elk-setup
 ## References
 
 - [Elasticsearch Documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html)
-- [Logstash Documentation](https://www.elastic.co/guide/en/logstash/current/index.html)
 - [Kibana Documentation](https://www.elastic.co/guide/en/kibana/current/index.html)
 - [Elastic Common Schema](https://www.elastic.co/guide/en/ecs/current/index.html)
 - [Index Lifecycle Management](https://www.elastic.co/guide/en/elasticsearch/reference/current/index-lifecycle-management.html)
+- [OpenTelemetry Elasticsearch Exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticsearchexporter)
