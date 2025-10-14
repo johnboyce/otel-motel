@@ -30,8 +30,10 @@ The otel-motel application uses the following components:
 Start Jaeger using Docker Compose:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
+
+> **Note:** If you're using an older version of Docker Compose (v1), use `docker-compose` instead of `docker compose`.
 
 Verify Jaeger is running:
 - Jaeger UI: http://localhost:16686
@@ -292,14 +294,16 @@ public class MyService {
 To stop the observability stack:
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 To stop and remove all data:
 
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
+
+> **Note:** If you're using an older version of Docker Compose (v1), use `docker-compose` instead of `docker compose`.
 
 ## Summary
 

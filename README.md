@@ -15,7 +15,7 @@ For detailed setup instructions, see [OTEL-SETUP.md](OTEL-SETUP.md).
 
 ### Quick Start with Observability
 
-1. Start Jaeger: `docker-compose up -d`
+1. Start Jaeger: `docker compose up -d`
 2. Run the application: `./mvnw quarkus:dev`
 3. View traces: http://localhost:16686
 
