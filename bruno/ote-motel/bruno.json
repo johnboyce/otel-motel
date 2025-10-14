@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "ote-motel",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
