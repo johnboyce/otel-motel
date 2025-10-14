@@ -31,7 +31,7 @@ Complete documentation for the otel-motel hotel booking system.
 
 ### Observability
 - **[OpenTelemetry Setup](../OTEL-SETUP.md)** - OTEL configuration
-- **[ELK Guide](../elk/README.md)** - Elasticsearch, Logstash, Kibana
+- **[ELK Guide](../elk/README.md)** - Elasticsearch and Kibana
 - **[Monitoring](../README.md#monitoring--observability)** - Metrics and traces
 
 ## Architecture
@@ -56,8 +56,8 @@ Complete documentation for the otel-motel hotel booking system.
         │                   │
         ▼                   ▼
 ┌──────────────┐   ┌──────────────────┐
-│  PostgreSQL  │   │  OpenTelemetry   │
-│   Database   │   │    Exporter      │
+│   DynamoDB   │   │  OpenTelemetry   │
+│ (LocalStack) │   │    Exporter      │
 │              │   │                  │
 │ - Hotels     │   └────────┬─────────┘
 │ - Rooms      │            │
@@ -67,19 +67,17 @@ Complete documentation for the otel-motel hotel booking system.
                    │  (HTTP/Protobuf) │
                    └────────┬─────────┘
                             │
-                ┌───────────┴───────────┐
-                │                       │
-                ▼                       ▼
-        ┌──────────────┐       ┌─────────────┐
-        │ Elasticsearch│◄──────│  Logstash   │
-        │   (Storage)  │       │ (Pipeline)  │
-        └──────┬───────┘       └─────────────┘
-               │
-               ▼
-        ┌──────────────┐
-        │    Kibana    │
-        │ (Visualization)│
-        └──────────────┘
+                            ▼
+                    ┌──────────────┐
+                    │ Elasticsearch│
+                    │   (Storage)  │
+                    └──────┬───────┘
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │    Kibana    │
+                    │(Visualization)│
+                    └──────────────┘
 ```
 
 ### Data Model
@@ -102,10 +100,10 @@ Hotel 1───* Room 1───* Booking *───1 Customer
 - **Framework**: Quarkus 3.27.0
 - **Language**: Java 17
 - **GraphQL**: SmallRye GraphQL
-- **Database**: PostgreSQL 16
-- **ORM**: Hibernate ORM with Panache
+- **Database**: DynamoDB LocalStack
+- **SDK**: AWS SDK Enhanced DynamoDB Client
 - **Observability**: OpenTelemetry
-- **Logging**: ELK Stack (Elasticsearch 8.11, Logstash 8.11, Kibana 8.11)
+- **Logging**: ELK Stack (Elasticsearch 8.11, Kibana 8.11)
 - **Containers**: Docker & Docker Compose
 - **Build Tool**: Maven
 - **API Testing**: Bruno
@@ -164,8 +162,9 @@ make verify         # Full verification
 
 ### 3. Database Operations
 ```bash
-make db-console     # Connect to PostgreSQL
-make db-reset       # Reset database
+make dynamodb-console      # Connect to DynamoDB
+make dynamodb-list-tables  # List all tables
+make dynamodb-reset        # Reset database
 ```
 
 ### 4. Monitoring
@@ -283,21 +282,21 @@ mutation CreateBooking($input: BookingInput!) {
 - PCI-compliant payment processing
 - Rate limiting
 - Input validation
-- SQL injection protection (via ORM)
+- DynamoDB access control
 
 ## Maintenance
 
 ### Regular Tasks
 ```bash
-make elk-indices    # Check index health
-make db-console     # Database maintenance
-make docker-logs    # Check service logs
+make elk-indices          # Check index health
+make dynamodb-list-tables # Database maintenance
+make docker-logs          # Check service logs
 ```
 
 ### Troubleshooting
 1. Check service health: `make elk-health`
 2. View logs: `make docker-logs`
-3. Reset database: `make db-reset`
+3. Reset database: `make dynamodb-reset`
 4. Restart services: `make docker-restart`
 
 ## Contributing
@@ -317,7 +316,8 @@ When adding features:
 - [GraphQL Best Practices](https://graphql.org/learn/best-practices/)
 - [OpenTelemetry Docs](https://opentelemetry.io/docs/)
 - [Elastic Stack Docs](https://www.elastic.co/guide/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [DynamoDB Documentation](https://docs.aws.amazon.com/dynamodb/)
+- [LocalStack Documentation](https://docs.localstack.cloud/)
 
 ### Internal Documentation
 - [Main README](../README.md)
