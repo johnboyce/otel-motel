@@ -12,20 +12,23 @@ post {
 
 body:graphql {
   query {
-    bookingsByCustomer(customerId: 1) {
+    bookingsByCustomer(customerId: "REPLACE_WITH_ACTUAL_CUSTOMER_ID") {
       id
+      roomId
+      customerId
       checkInDate
       checkOutDate
       numberOfGuests
       totalPrice
       status
-      room {
-        roomNumber
-        hotel {
-          name
-          city
-        }
-      }
     }
   }
+}
+
+docs {
+  # Get Bookings by Customer
+  
+  Replace `REPLACE_WITH_ACTUAL_CUSTOMER_ID` with an actual customer ID from the system.
+  
+  To get a customer ID, run "Get Customer by Email" with an email like "john.doe@example.com".
 }

@@ -1,13 +1,13 @@
 package com.johnnyb.service;
 
-import com.johnnyb.entity.Booking;
-import com.johnnyb.entity.Customer;
-import com.johnnyb.entity.Hotel;
-import com.johnnyb.entity.Room;
+import com.johnnyb.model.Booking;
+import com.johnnyb.model.Customer;
+import com.johnnyb.model.Hotel;
+import com.johnnyb.model.Room;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
-import jakarta.transaction.Transactional;
+import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
 import java.math.BigDecimal;
@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 @ApplicationScoped
 public class DataInitializationService {
@@ -22,10 +23,21 @@ public class DataInitializationService {
     private static final Logger LOG = Logger.getLogger(DataInitializationService.class);
     private static final Random RANDOM = new Random();
 
-    @Transactional
+    @Inject
+    HotelService hotelService;
+
+    @Inject
+    RoomService roomService;
+
+    @Inject
+    CustomerService customerService;
+
+    @Inject
+    BookingService bookingService;
+
     public void onStart(@Observes StartupEvent ev) {
         // Only initialize if database is empty
-        if (Hotel.count() > 0) {
+        if (hotelService.count() > 0) {
             LOG.info("Database already initialized, skipping data initialization");
             return;
         }
@@ -48,68 +60,138 @@ public class DataInitializationService {
     private List<Customer> createCustomers() {
         List<Customer> customers = new ArrayList<>();
 
-        customers.add(new Customer(
-            "John", "Doe", "john.doe@example.com", "+1-555-0101",
-            "123 Main St, New York, NY 10001",
-            "4532015112830366", "12/25", "123"
-        ));
+        customers.add(Customer.builder()
+            .id(UUID.randomUUID().toString())
+            .firstName("John")
+            .lastName("Doe")
+            .email("john.doe@example.com")
+            .phone("+1-555-0101")
+            .address("123 Main St, New York, NY 10001")
+            .creditCardNumber("4532015112830366")
+            .creditCardExpiry("12/25")
+            .creditCardCvv("123")
+            .bookingIds(new ArrayList<>())
+            .build());
 
-        customers.add(new Customer(
-            "Jane", "Smith", "jane.smith@example.com", "+1-555-0102",
-            "456 Oak Ave, Los Angeles, CA 90001",
-            "5425233430109903", "11/26", "456"
-        ));
+        customers.add(Customer.builder()
+            .id(UUID.randomUUID().toString())
+            .firstName("Jane")
+            .lastName("Smith")
+            .email("jane.smith@example.com")
+            .phone("+1-555-0102")
+            .address("456 Oak Ave, Los Angeles, CA 90001")
+            .creditCardNumber("5425233430109903")
+            .creditCardExpiry("11/26")
+            .creditCardCvv("456")
+            .bookingIds(new ArrayList<>())
+            .build());
 
-        customers.add(new Customer(
-            "Michael", "Johnson", "michael.johnson@example.com", "+1-555-0103",
-            "789 Pine Rd, Chicago, IL 60601",
-            "2221000010003695", "10/24", "789"
-        ));
+        customers.add(Customer.builder()
+            .id(UUID.randomUUID().toString())
+            .firstName("Michael")
+            .lastName("Johnson")
+            .email("michael.johnson@example.com")
+            .phone("+1-555-0103")
+            .address("789 Pine Rd, Chicago, IL 60601")
+            .creditCardNumber("2221000010003695")
+            .creditCardExpiry("10/24")
+            .creditCardCvv("789")
+            .bookingIds(new ArrayList<>())
+            .build());
 
-        customers.add(new Customer(
-            "Emily", "Williams", "emily.williams@example.com", "+1-555-0104",
-            "321 Elm St, Houston, TX 77001",
-            "378282246310005", "09/25", "321"
-        ));
+        customers.add(Customer.builder()
+            .id(UUID.randomUUID().toString())
+            .firstName("Emily")
+            .lastName("Williams")
+            .email("emily.williams@example.com")
+            .phone("+1-555-0104")
+            .address("321 Elm St, Houston, TX 77001")
+            .creditCardNumber("378282246310005")
+            .creditCardExpiry("09/25")
+            .creditCardCvv("321")
+            .bookingIds(new ArrayList<>())
+            .build());
 
-        customers.add(new Customer(
-            "David", "Brown", "david.brown@example.com", "+1-555-0105",
-            "654 Maple Dr, Phoenix, AZ 85001",
-            "371449635398431", "08/26", "654"
-        ));
+        customers.add(Customer.builder()
+            .id(UUID.randomUUID().toString())
+            .firstName("David")
+            .lastName("Brown")
+            .email("david.brown@example.com")
+            .phone("+1-555-0105")
+            .address("654 Maple Dr, Phoenix, AZ 85001")
+            .creditCardNumber("371449635398431")
+            .creditCardExpiry("08/26")
+            .creditCardCvv("654")
+            .bookingIds(new ArrayList<>())
+            .build());
 
-        customers.add(new Customer(
-            "Sarah", "Davis", "sarah.davis@example.com", "+1-555-0106",
-            "987 Cedar Ln, Philadelphia, PA 19101",
-            "6011111111111117", "07/25", "987"
-        ));
+        customers.add(Customer.builder()
+            .id(UUID.randomUUID().toString())
+            .firstName("Sarah")
+            .lastName("Davis")
+            .email("sarah.davis@example.com")
+            .phone("+1-555-0106")
+            .address("987 Cedar Ln, Philadelphia, PA 19101")
+            .creditCardNumber("6011111111111117")
+            .creditCardExpiry("07/25")
+            .creditCardCvv("987")
+            .bookingIds(new ArrayList<>())
+            .build());
 
-        customers.add(new Customer(
-            "James", "Miller", "james.miller@example.com", "+1-555-0107",
-            "147 Birch Ct, San Antonio, TX 78201",
-            "3530111333300000", "06/24", "147"
-        ));
+        customers.add(Customer.builder()
+            .id(UUID.randomUUID().toString())
+            .firstName("James")
+            .lastName("Miller")
+            .email("james.miller@example.com")
+            .phone("+1-555-0107")
+            .address("147 Birch Ct, San Antonio, TX 78201")
+            .creditCardNumber("3530111333300000")
+            .creditCardExpiry("06/24")
+            .creditCardCvv("147")
+            .bookingIds(new ArrayList<>())
+            .build());
 
-        customers.add(new Customer(
-            "Lisa", "Wilson", "lisa.wilson@example.com", "+1-555-0108",
-            "258 Spruce Way, San Diego, CA 92101",
-            "5555555555554444", "05/26", "258"
-        ));
+        customers.add(Customer.builder()
+            .id(UUID.randomUUID().toString())
+            .firstName("Lisa")
+            .lastName("Wilson")
+            .email("lisa.wilson@example.com")
+            .phone("+1-555-0108")
+            .address("258 Spruce Way, San Diego, CA 92101")
+            .creditCardNumber("5555555555554444")
+            .creditCardExpiry("05/26")
+            .creditCardCvv("258")
+            .bookingIds(new ArrayList<>())
+            .build());
 
-        customers.add(new Customer(
-            "Robert", "Moore", "robert.moore@example.com", "+1-555-0109",
-            "369 Walnut Blvd, Dallas, TX 75201",
-            "4111111111111111", "04/25", "369"
-        ));
+        customers.add(Customer.builder()
+            .id(UUID.randomUUID().toString())
+            .firstName("Robert")
+            .lastName("Moore")
+            .email("robert.moore@example.com")
+            .phone("+1-555-0109")
+            .address("369 Walnut Blvd, Dallas, TX 75201")
+            .creditCardNumber("4111111111111111")
+            .creditCardExpiry("04/25")
+            .creditCardCvv("369")
+            .bookingIds(new ArrayList<>())
+            .build());
 
-        customers.add(new Customer(
-            "Jennifer", "Taylor", "jennifer.taylor@example.com", "+1-555-0110",
-            "753 Ash Ave, San Jose, CA 95101",
-            "4012888888881881", "03/26", "753"
-        ));
+        customers.add(Customer.builder()
+            .id(UUID.randomUUID().toString())
+            .firstName("Jennifer")
+            .lastName("Taylor")
+            .email("jennifer.taylor@example.com")
+            .phone("+1-555-0110")
+            .address("753 Ash Ave, San Jose, CA 95101")
+            .creditCardNumber("4012888888881881")
+            .creditCardExpiry("03/26")
+            .creditCardCvv("753")
+            .bookingIds(new ArrayList<>())
+            .build());
 
         for (Customer customer : customers) {
-            customer.persist();
+            customerService.save(customer);
         }
 
         return customers;
@@ -119,67 +201,77 @@ public class DataInitializationService {
         List<Hotel> hotels = new ArrayList<>();
 
         // Hotel 1: Luxury Resort
-        Hotel hotel1 = new Hotel(
-            "Grand Pacific Resort",
-            "100 Beachfront Drive",
-            "Miami Beach",
-            "USA",
-            "A luxurious beachfront resort featuring world-class amenities, spa services, and fine dining.",
-            5
-        );
-        hotel1.persist();
+        Hotel hotel1 = Hotel.builder()
+            .id(UUID.randomUUID().toString())
+            .name("Grand Pacific Resort")
+            .address("100 Beachfront Drive")
+            .city("Miami Beach")
+            .country("USA")
+            .description("A luxurious beachfront resort featuring world-class amenities, spa services, and fine dining.")
+            .starRating(5)
+            .roomIds(new ArrayList<>())
+            .build();
+        hotelService.save(hotel1);
         createRoomsForHotel(hotel1, 20);
         hotels.add(hotel1);
 
         // Hotel 2: Business Hotel
-        Hotel hotel2 = new Hotel(
-            "Metropolitan Business Hotel",
-            "250 Corporate Plaza",
-            "New York",
-            "USA",
-            "Modern business hotel in the heart of Manhattan with state-of-the-art conference facilities.",
-            4
-        );
-        hotel2.persist();
+        Hotel hotel2 = Hotel.builder()
+            .id(UUID.randomUUID().toString())
+            .name("Metropolitan Business Hotel")
+            .address("250 Corporate Plaza")
+            .city("New York")
+            .country("USA")
+            .description("Modern business hotel in the heart of Manhattan with state-of-the-art conference facilities.")
+            .starRating(4)
+            .roomIds(new ArrayList<>())
+            .build();
+        hotelService.save(hotel2);
         createRoomsForHotel(hotel2, 25);
         hotels.add(hotel2);
 
         // Hotel 3: Boutique Hotel
-        Hotel hotel3 = new Hotel(
-            "The Vintage Inn",
-            "75 Historic District",
-            "Charleston",
-            "USA",
-            "Charming boutique hotel in a restored 19th-century building with unique character.",
-            4
-        );
-        hotel3.persist();
+        Hotel hotel3 = Hotel.builder()
+            .id(UUID.randomUUID().toString())
+            .name("The Vintage Inn")
+            .address("75 Historic District")
+            .city("Charleston")
+            .country("USA")
+            .description("Charming boutique hotel in a restored 19th-century building with unique character.")
+            .starRating(4)
+            .roomIds(new ArrayList<>())
+            .build();
+        hotelService.save(hotel3);
         createRoomsForHotel(hotel3, 15);
         hotels.add(hotel3);
 
         // Hotel 4: Mountain Lodge
-        Hotel hotel4 = new Hotel(
-            "Alpine Mountain Lodge",
-            "500 Summit Road",
-            "Aspen",
-            "USA",
-            "Cozy mountain lodge offering breathtaking views and easy access to ski slopes.",
-            4
-        );
-        hotel4.persist();
+        Hotel hotel4 = Hotel.builder()
+            .id(UUID.randomUUID().toString())
+            .name("Alpine Mountain Lodge")
+            .address("500 Summit Road")
+            .city("Aspen")
+            .country("USA")
+            .description("Cozy mountain lodge offering breathtaking views and easy access to ski slopes.")
+            .starRating(4)
+            .roomIds(new ArrayList<>())
+            .build();
+        hotelService.save(hotel4);
         createRoomsForHotel(hotel4, 18);
         hotels.add(hotel4);
 
         // Hotel 5: Airport Hotel
-        Hotel hotel5 = new Hotel(
-            "Sky Harbor Hotel",
-            "1000 Airport Boulevard",
-            "Los Angeles",
-            "USA",
-            "Convenient airport hotel with complimentary shuttle service and comfortable accommodations.",
-            3
-        );
-        hotel5.persist();
+        Hotel hotel5 = Hotel.builder()
+            .id(UUID.randomUUID().toString())
+            .name("Sky Harbor Hotel")
+            .address("1000 Airport Boulevard")
+            .city("Los Angeles")
+            .country("USA")
+            .description("Convenient airport hotel with complimentary shuttle service and comfortable accommodations.")
+            .starRating(3)
+            .roomIds(new ArrayList<>())
+            .build();
+        hotelService.save(hotel5);
         createRoomsForHotel(hotel5, 30);
         hotels.add(hotel5);
 
@@ -203,15 +295,17 @@ public class DataInitializationService {
             
             int typeIndex = i % roomTypes.length;
             
-            Room room = new Room(
-                hotel,
-                roomNumber,
-                roomTypes[typeIndex],
-                basePrices[typeIndex],
-                capacities[typeIndex],
-                String.format("%s room with modern amenities", roomTypes[typeIndex])
-            );
-            room.persist();
+            Room room = Room.builder()
+                .id(UUID.randomUUID().toString())
+                .hotelId(hotel.getId())
+                .roomNumber(roomNumber)
+                .roomType(roomTypes[typeIndex])
+                .pricePerNight(basePrices[typeIndex])
+                .capacity(capacities[typeIndex])
+                .description(String.format("%s room with modern amenities", roomTypes[typeIndex]))
+                .bookingIds(new ArrayList<>())
+                .build();
+            roomService.save(room);
         }
     }
 
@@ -219,8 +313,8 @@ public class DataInitializationService {
         LocalDate today = LocalDate.now();
         LocalDate endDate = today.plusMonths(3);
         
-        int totalRooms = hotels.stream()
-            .mapToInt(hotel -> Room.list("hotel", hotel).size())
+        int totalRooms = (int) hotels.stream()
+            .mapToLong(hotel -> roomService.findByHotelId(hotel.getId()).size())
             .sum();
         
         // Target ~50% occupancy, so create bookings for about half the room-nights
@@ -233,7 +327,7 @@ public class DataInitializationService {
             try {
                 // Random hotel and room
                 Hotel hotel = hotels.get(RANDOM.nextInt(hotels.size()));
-                List<Room> hotelRooms = Room.list("hotel", hotel);
+                List<Room> hotelRooms = roomService.findByHotelId(hotel.getId());
                 if (hotelRooms.isEmpty()) continue;
                 
                 Room room = hotelRooms.get(RANDOM.nextInt(hotelRooms.size()));
@@ -255,9 +349,8 @@ public class DataInitializationService {
                 }
                 
                 // Check if room is available
-                List<Booking> overlappingBookings = Booking.list(
-                    "room.id = ?1 and status != ?2 and checkInDate < ?3 and checkOutDate > ?4",
-                    room.id, Booking.BookingStatus.CANCELLED, checkOut, checkIn
+                List<Booking> overlappingBookings = bookingService.findOverlappingBookings(
+                    room.getId(), checkIn, checkOut
                 );
                 
                 if (!overlappingBookings.isEmpty()) {
@@ -266,10 +359,10 @@ public class DataInitializationService {
                 
                 // Calculate total price
                 long nights = checkOut.toEpochDay() - checkIn.toEpochDay();
-                BigDecimal totalPrice = room.pricePerNight.multiply(BigDecimal.valueOf(nights));
+                BigDecimal totalPrice = room.getPricePerNight().multiply(BigDecimal.valueOf(nights));
                 
                 // Random number of guests (1 to room capacity)
-                int numberOfGuests = 1 + RANDOM.nextInt(room.capacity);
+                int numberOfGuests = 1 + RANDOM.nextInt(room.getCapacity());
                 
                 // Random booking status (mostly confirmed)
                 Booking.BookingStatus status = RANDOM.nextDouble() < 0.9 
@@ -286,11 +379,18 @@ public class DataInitializationService {
                 };
                 String specialRequest = specialRequests[RANDOM.nextInt(specialRequests.length)];
                 
-                Booking booking = new Booking(
-                    room, customer, checkIn, checkOut, numberOfGuests,
-                    totalPrice, status, specialRequest
-                );
-                booking.persist();
+                Booking booking = Booking.builder()
+                    .id(UUID.randomUUID().toString())
+                    .roomId(room.getId())
+                    .customerId(customer.getId())
+                    .checkInDate(checkIn)
+                    .checkOutDate(checkOut)
+                    .numberOfGuests(numberOfGuests)
+                    .totalPrice(totalPrice)
+                    .status(status)
+                    .specialRequests(specialRequest)
+                    .build();
+                bookingService.save(booking);
                 bookingsCreated++;
                 
             } catch (Exception e) {

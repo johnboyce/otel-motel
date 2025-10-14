@@ -12,17 +12,21 @@ post {
 
 body:graphql {
   query {
-    availableRooms(hotelId: 1, checkIn: "2025-11-01", checkOut: "2025-11-05") {
+    availableRooms(hotelId: "REPLACE_WITH_ACTUAL_HOTEL_ID", checkIn: "2025-11-01", checkOut: "2025-11-05") {
       id
+      hotelId
       roomNumber
       roomType
       pricePerNight
       capacity
       description
-      hotel {
-        name
-        city
-      }
     }
   }
+}
+
+docs {
+  # Get Available Rooms
+  
+  Replace `REPLACE_WITH_ACTUAL_HOTEL_ID` with an actual hotel ID from the system.
+  Also update the checkIn and checkOut dates as needed.
 }

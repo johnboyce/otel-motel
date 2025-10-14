@@ -4,6 +4,8 @@ meta {
   version: 1.0.0
 }
 
+brunoVersion: 2.11.0
+
 docs {
   # otel-motel GraphQL API Collection
   
