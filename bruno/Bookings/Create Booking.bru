@@ -13,31 +13,35 @@ post {
 body:graphql {
   mutation {
     createBooking(
-      roomId: 1,
-      customerId: 1,
+      roomId: "REPLACE_WITH_ACTUAL_ROOM_ID",
+      customerId: "REPLACE_WITH_ACTUAL_CUSTOMER_ID",
       checkInDate: "2025-11-15",
       checkOutDate: "2025-11-20",
       numberOfGuests: 2,
       specialRequests: "Late check-in please"
     ) {
       id
+      roomId
+      customerId
       checkInDate
       checkOutDate
       numberOfGuests
       totalPrice
       status
       specialRequests
-      room {
-        roomNumber
-        hotel {
-          name
-        }
-      }
-      customer {
-        firstName
-        lastName
-        email
-      }
     }
   }
+}
+
+docs {
+  # Create Booking
+  
+  Replace:
+  - `REPLACE_WITH_ACTUAL_ROOM_ID` with an actual room ID from the system
+  - `REPLACE_WITH_ACTUAL_CUSTOMER_ID` with an actual customer ID from the system
+  
+  To get available IDs:
+  1. Run "Get All Hotels" to get hotel IDs
+  2. Run "Get Rooms by Hotel" with a hotel ID to get room IDs
+  3. Run "Get Customer by Email" with an email like "john.doe@example.com" to get a customer ID
 }

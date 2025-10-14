@@ -12,8 +12,9 @@ post {
 
 body:graphql {
   query {
-    roomsByHotel(hotelId: 1) {
+    roomsByHotel(hotelId: "REPLACE_WITH_ACTUAL_HOTEL_ID") {
       id
+      hotelId
       roomNumber
       roomType
       pricePerNight
@@ -21,4 +22,12 @@ body:graphql {
       description
     }
   }
+}
+
+docs {
+  # Get Rooms by Hotel
+  
+  Replace `REPLACE_WITH_ACTUAL_HOTEL_ID` with an actual hotel ID from the system.
+  
+  To get available hotel IDs, first run the "Get All Hotels" query.
 }

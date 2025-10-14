@@ -12,17 +12,21 @@ post {
 
 body:graphql {
   mutation {
-    cancelBooking(bookingId: 1) {
+    cancelBooking(bookingId: "REPLACE_WITH_ACTUAL_BOOKING_ID") {
       id
+      roomId
+      customerId
       status
       checkInDate
       checkOutDate
-      room {
-        roomNumber
-        hotel {
-          name
-        }
-      }
     }
   }
+}
+
+docs {
+  # Cancel Booking
+  
+  Replace `REPLACE_WITH_ACTUAL_BOOKING_ID` with an actual booking ID from the system.
+  
+  To get available booking IDs, run "Get Upcoming Bookings" first.
 }

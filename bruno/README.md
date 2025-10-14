@@ -2,6 +2,8 @@
 
 This directory contains a complete Bruno API collection for testing all GraphQL operations in the otel-motel hotel booking system.
 
+**Bruno Version**: 2.11.0
+
 ## What is Bruno?
 
 Bruno is a fast, Git-friendly, open-source API client. Unlike Postman, Bruno stores collections directly in your filesystem, making it perfect for version control.

@@ -14,23 +14,13 @@ body:graphql {
   query {
     upcomingBookings {
       id
+      roomId
+      customerId
       checkInDate
       checkOutDate
       numberOfGuests
       totalPrice
       status
-      room {
-        roomNumber
-        roomType
-        hotel {
-          name
-          city
-        }
-      }
-      customer {
-        firstName
-        lastName
-      }
     }
   }
 }

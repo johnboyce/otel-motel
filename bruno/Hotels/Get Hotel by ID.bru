@@ -12,7 +12,7 @@ post {
 
 body:graphql {
   query {
-    hotel(id: 1) {
+    hotel(id: "REPLACE_WITH_ACTUAL_HOTEL_ID") {
       id
       name
       address
@@ -20,14 +20,16 @@ body:graphql {
       country
       description
       starRating
-      rooms {
-        id
-        roomNumber
-        roomType
-        pricePerNight
-        capacity
-        description
-      }
     }
   }
+}
+
+docs {
+  # Get Hotel by ID
+  
+  Replace `REPLACE_WITH_ACTUAL_HOTEL_ID` with an actual hotel ID from the system.
+  
+  To get available hotel IDs, first run the "Get All Hotels" query.
+  
+  Example ID: "550e8400-e29b-41d4-a716-446655440000"
 }
