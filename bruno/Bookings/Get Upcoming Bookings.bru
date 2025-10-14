@@ -1,0 +1,36 @@
+meta {
+  name: Get Upcoming Bookings
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/graphql
+  body: graphql
+  auth: none
+}
+
+body:graphql {
+  query {
+    upcomingBookings {
+      id
+      checkInDate
+      checkOutDate
+      numberOfGuests
+      totalPrice
+      status
+      room {
+        roomNumber
+        roomType
+        hotel {
+          name
+          city
+        }
+      }
+      customer {
+        firstName
+        lastName
+      }
+    }
+  }
+}

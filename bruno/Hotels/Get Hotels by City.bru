@@ -1,0 +1,24 @@
+meta {
+  name: Get Hotels by City
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/graphql
+  body: graphql
+  auth: none
+}
+
+body:graphql {
+  query {
+    hotelsByCity(city: "Miami Beach") {
+      id
+      name
+      address
+      city
+      country
+      starRating
+    }
+  }
+}

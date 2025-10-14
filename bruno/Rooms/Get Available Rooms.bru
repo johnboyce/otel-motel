@@ -1,0 +1,28 @@
+meta {
+  name: Get Available Rooms
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/graphql
+  body: graphql
+  auth: none
+}
+
+body:graphql {
+  query {
+    availableRooms(hotelId: 1, checkIn: "2025-11-01", checkOut: "2025-11-05") {
+      id
+      roomNumber
+      roomType
+      pricePerNight
+      capacity
+      description
+      hotel {
+        name
+        city
+      }
+    }
+  }
+}

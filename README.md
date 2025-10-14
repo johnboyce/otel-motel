@@ -1,88 +1,406 @@
-# otel-motel
+# otel-motel 🏨
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+A modern hotel booking GraphQL server built with Quarkus, featuring comprehensive observability with OpenTelemetry and the ELK stack.
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+## 🌟 Features
 
-## OpenTelemetry Observability
+- **GraphQL API** - Complete hotel booking system with queries and mutations
+- **Database** - PostgreSQL with Hibernate ORM Panache
+- **Sample Data** - Pre-loaded with 5 hotels, 10 customers, and ~50% booking capacity
+- **Observability** - Full OpenTelemetry integration with ELK stack
+- **ECS Compliance** - Elasticsearch logs follow Elastic Common Schema
+- **HTTP/Protobuf** - OTLP export using modern HTTP/Protobuf protocol
+- **Docker Compose** - Complete local development stack
+- **Bruno Collection** - Ready-to-use API test collection
+- **Makefile** - Structured task automation for developers
 
-This application includes **OpenTelemetry (OTEL)** support for enhanced observability with:
-- **Distributed Tracing**: Track requests across the application
-- **Metrics Collection**: Monitor application performance
-- **Log Correlation**: Link logs with traces for better debugging
+## 🚀 Quick Start
 
-For detailed setup instructions, see [OTEL-SETUP.md](OTEL-SETUP.md).
+### Prerequisites
 
-### Quick Start with Observability
+- **Java 17+** (configured for Java 17)
+- **Docker & Docker Compose**
+- **Maven 3.9+** (included via wrapper)
+- **Bruno** (optional, for API testing)
 
-1. Start Jaeger: `docker compose up -d`
-2. Run the application: `./mvnw quarkus:dev`
-3. View traces: http://localhost:16686
-
-## Prerequisites
-
-- **Java 21** (required)
-- Maven 3.9.x or higher
-- Docker and Docker Compose (for observability stack)
-
-## Running the application in dev mode
-
-You can run your application in dev mode that enables live coding using:
-
-```shell script
-./mvnw quarkus:dev
+For macOS M3:
+```bash
+brew install openjdk@17 docker docker-compose
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+### 1. Start Infrastructure
 
-## Packaging and running the application
-
-The application can be packaged using:
-
-```shell script
-./mvnw package
+```bash
+make docker-up    # Start PostgreSQL, ELK stack, OTEL Collector
+make elk-setup    # Initialize Elasticsearch indices
 ```
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+### 2. Run Application
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
-
-If you want to build an _über-jar_, execute the following command:
-
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
+```bash
+make dev          # Start in development mode with hot reload
 ```
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
+### 3. Access Services
 
-## Creating a native executable
+| Service | URL | Description |
+|---------|-----|-------------|
+| GraphQL UI | http://localhost:8080/q/graphql-ui | Interactive API explorer |
+| GraphQL Endpoint | http://localhost:8080/graphql | API endpoint |
+| Dev UI | http://localhost:8080/q/dev | Quarkus dev console |
+| Kibana | http://localhost:5601 | Log and trace visualization |
+| Elasticsearch | http://localhost:9200 | Data store |
+| OTEL Collector | http://localhost:4318 | Telemetry collector |
 
-You can create a native executable using:
+## 📚 Documentation
 
-```shell script
-./mvnw package -Dnative
+- **[Docker Configuration](docker/README.md)** - Container setup and OTEL Collector
+- **[ELK Stack Guide](elk/README.md)** - Elasticsearch, Logstash, Kibana setup
+- **[Bruno API Collection](bruno/README.md)** - GraphQL API testing
+- **[OpenTelemetry Setup](OTEL-SETUP.md)** - Observability configuration
+
+## 🏗️ Architecture
+
+```
+┌─────────────────┐
+│  GraphQL API    │
+│  (Quarkus)      │
+└────────┬────────┘
+         │
+    ┌────┴────┐
+    │         │
+    ▼         ▼
+┌──────┐  ┌──────────────┐
+│ DB   │  │ OTEL         │
+│ (PG) │  │ Collector    │
+└──────┘  └──────┬───────┘
+                 │
+         ┌───────┴────────┐
+         │                │
+         ▼                ▼
+    ┌──────────┐    ┌─────────┐
+    │ Elastic  │◄───│ Logstash│
+    │ search   │    └─────────┘
+    └────┬─────┘
+         │
+         ▼
+    ┌─────────┐
+    │ Kibana  │
+    └─────────┘
 ```
 
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
+## 📊 Data Model
 
-```shell script
-./mvnw package -Dnative -Dquarkus.native.container-build=true
+### Entities
+
+- **Hotel** - Hotel information (name, location, rating)
+- **Room** - Room details (type, price, capacity)
+- **Customer** - Customer profiles with secure payment info
+- **Booking** - Reservations linking customers to rooms
+
+### Sample Data
+
+The system initializes with:
+- **5 Hotels** across different US cities
+- **108 Rooms** with various types and prices
+- **10 Customers** with sample credit card details
+- **~200 Bookings** spanning the next 3 months
+
+## 🎯 GraphQL API
+
+### Sample Queries
+
+```graphql
+# Get all hotels
+query {
+  hotels {
+    id
+    name
+    city
+    starRating
+  }
+}
+
+# Check room availability
+query {
+  availableRooms(
+    hotelId: 1,
+    checkIn: "2025-11-01",
+    checkOut: "2025-11-05"
+  ) {
+    roomNumber
+    roomType
+    pricePerNight
+  }
+}
+
+# Get upcoming bookings
+query {
+  upcomingBookings {
+    id
+    checkInDate
+    room {
+      hotel {
+        name
+      }
+    }
+    customer {
+      firstName
+      lastName
+    }
+  }
+}
 ```
 
-You can then execute your native executable with: `./target/otel-motel-1.0-SNAPSHOT-runner`
+### Sample Mutations
 
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
+```graphql
+# Create a booking
+mutation {
+  createBooking(
+    roomId: 1,
+    customerId: 1,
+    checkInDate: "2025-11-15",
+    checkOutDate: "2025-11-20",
+    numberOfGuests: 2,
+    specialRequests: "Late check-in please"
+  ) {
+    id
+    totalPrice
+    status
+  }
+}
 
-## Related Guides
+# Cancel a booking
+mutation {
+  cancelBooking(bookingId: 1) {
+    id
+    status
+  }
+}
+```
 
-- SmallRye GraphQL ([guide](https://quarkus.io/guides/smallrye-graphql)): Create GraphQL Endpoints using the code-first
-  approach from MicroProfile GraphQL
+## 🔧 Makefile Commands
 
-## Provided Code
+### Development
+```bash
+make help           # Show all available commands
+make build          # Build the project
+make compile        # Compile sources only
+make dev            # Run in development mode
+make test           # Run tests
+```
 
-### SmallRye GraphQL
+### Docker & Infrastructure
+```bash
+make docker-up      # Start all services
+make docker-down    # Stop all services
+make docker-logs    # View logs
+make elk-setup      # Initialize Elasticsearch
+make elk-health     # Check ELK status
+```
 
-Start coding with this Hello GraphQL Query
+### Monitoring
+```bash
+make kibana-open    # Open Kibana in browser
+make graphql-ui     # Open GraphQL UI
+make elk-logs       # View recent logs
+make otel-metrics   # View OTEL metrics
+```
 
-[Related guide section...](https://quarkus.io/guides/smallrye-graphql)
+### Complete Workflows
+```bash
+make setup          # Complete setup (Docker + ELK)
+make start          # Setup + run application
+make stop           # Stop everything
+make restart        # Full restart
+```
+
+## 📝 OpenTelemetry & ELK
+
+### Observability Features
+
+- **Distributed Tracing** - Track requests across the application
+- **Structured Logging** - JSON logs with ECS compliance
+- **Metrics Collection** - Application performance metrics
+- **Log Correlation** - Link logs with traces via trace IDs
+
+### ECS Compliance
+
+All logs follow the Elastic Common Schema with fields:
+- `@timestamp` - Event timestamp
+- `service.name` - Service identifier
+- `log.level` - Log severity
+- `trace.id` - Distributed trace ID
+- `span.id` - Span identifier
+- `message` - Log message
+
+### OTLP Protocol
+
+Uses HTTP/Protobuf for efficient telemetry export:
+```properties
+quarkus.otel.exporter.otlp.endpoint=http://localhost:4318
+quarkus.otel.exporter.otlp.protocol=http/protobuf
+```
+
+## 🗂️ Project Structure
+
+```
+otel-motel/
+├── src/main/java/com/johnnyb/
+│   ├── entity/              # JPA entities (Hotel, Room, Booking, Customer)
+│   ├── graphql/             # GraphQL resources and resolvers
+│   └── service/             # Business logic and data initialization
+├── src/main/resources/
+│   └── application.properties  # Application configuration
+├── docker/
+│   ├── otel-collector-config.yaml  # OTEL Collector setup
+│   └── README.md            # Docker documentation
+├── elk/
+│   ├── elasticsearch/       # ES index templates and scripts
+│   ├── logstash/           # Log processing pipeline
+│   └── README.md           # ELK documentation
+├── bruno/                  # Bruno API collection
+│   ├── Hotels/             # Hotel queries
+│   ├── Rooms/              # Room queries
+│   ├── Bookings/           # Booking operations
+│   ├── Customers/          # Customer queries
+│   └── README.md           # Bruno documentation
+├── docker-compose.yml      # Local development stack
+├── Makefile               # Task automation
+└── README.md              # This file
+```
+
+## 🧪 Testing
+
+### Run Tests
+```bash
+make test
+make verify  # Includes integration tests
+```
+
+### API Testing with Bruno
+
+1. Install Bruno: https://www.usebruno.com/
+2. Open collection: `bruno/`
+3. Execute requests
+
+Or use the CLI:
+```bash
+bru run bruno/
+```
+
+### Manual Testing
+
+Use the GraphQL UI at http://localhost:8080/q/graphql-ui for interactive testing.
+
+## 🔨 Building
+
+### Development Build
+```bash
+make build
+```
+
+### Native Build (requires GraalVM)
+```bash
+make build-native
+```
+
+## 🗄️ Database
+
+### Connect to Database
+```bash
+make db-console
+```
+
+### Reset Database
+```bash
+make db-reset
+```
+
+### Configuration
+```properties
+Database: otelmotel
+User: otelmotel
+Password: otelmotel123
+Port: 5432
+```
+
+## 📈 Monitoring & Observability
+
+### View Traces in Kibana
+
+1. Open Kibana: http://localhost:5601
+2. Navigate to "Observability" → "APM"
+3. Select "otel-motel" service
+4. Explore traces and performance metrics
+
+### Query Logs
+
+```bash
+# Recent application logs
+make elk-logs
+
+# All indices
+make elk-indices
+```
+
+### Prometheus Metrics
+
+```bash
+# OTEL Collector metrics
+make otel-metrics
+```
+
+## 🌍 Environments
+
+Currently configured for **dev** environment:
+- Local PostgreSQL database
+- Single-node Elasticsearch
+- Debug logging enabled
+- Hot reload enabled
+
+Future considerations for **staging** and **prod**:
+- Multi-node database cluster
+- Elasticsearch cluster with replication
+- Production logging levels
+- Security and authentication
+- Load balancing
+
+## 🛠️ Development Tools
+
+### For macOS M3 Developers
+
+```bash
+# Install tools
+make install-tools
+
+# Check dependencies
+make check-deps
+```
+
+## 📖 Additional Resources
+
+- [Quarkus Documentation](https://quarkus.io/guides/)
+- [GraphQL Documentation](https://graphql.org/learn/)
+- [OpenTelemetry Documentation](https://opentelemetry.io/docs/)
+- [Elastic Stack Documentation](https://www.elastic.co/guide/)
+- [Bruno Documentation](https://docs.usebruno.com/)
+
+## 🤝 Contributing
+
+1. Follow existing code structure and style
+2. Add tests for new features
+3. Update documentation
+4. Create Bruno requests for new API endpoints
+5. Ensure `make verify` passes
+
+## 📄 License
+
+This project uses the Quarkus framework.
+
+For more information about Quarkus, visit: https://quarkus.io/
+
+---
+
+**Built with** ❤️ **using Quarkus, OpenTelemetry, and the ELK Stack**

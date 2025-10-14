@@ -1,0 +1,43 @@
+meta {
+  name: Create Booking
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/graphql
+  body: graphql
+  auth: none
+}
+
+body:graphql {
+  mutation {
+    createBooking(
+      roomId: 1,
+      customerId: 1,
+      checkInDate: "2025-11-15",
+      checkOutDate: "2025-11-20",
+      numberOfGuests: 2,
+      specialRequests: "Late check-in please"
+    ) {
+      id
+      checkInDate
+      checkOutDate
+      numberOfGuests
+      totalPrice
+      status
+      specialRequests
+      room {
+        roomNumber
+        hotel {
+          name
+        }
+      }
+      customer {
+        firstName
+        lastName
+        email
+      }
+    }
+  }
+}

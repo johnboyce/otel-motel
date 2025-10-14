@@ -1,0 +1,28 @@
+meta {
+  name: Cancel Booking
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8080/graphql
+  body: graphql
+  auth: none
+}
+
+body:graphql {
+  mutation {
+    cancelBooking(bookingId: 1) {
+      id
+      status
+      checkInDate
+      checkOutDate
+      room {
+        roomNumber
+        hotel {
+          name
+        }
+      }
+    }
+  }
+}

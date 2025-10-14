@@ -1,0 +1,33 @@
+meta {
+  name: Get Hotel by ID
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/graphql
+  body: graphql
+  auth: none
+}
+
+body:graphql {
+  query {
+    hotel(id: 1) {
+      id
+      name
+      address
+      city
+      country
+      description
+      starRating
+      rooms {
+        id
+        roomNumber
+        roomType
+        pricePerNight
+        capacity
+        description
+      }
+    }
+  }
+}
