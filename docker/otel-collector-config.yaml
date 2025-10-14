@@ -29,30 +29,13 @@ exporters:
   elasticsearch/logs:
     endpoints: ["http://elasticsearch:9200"]
     logs_index: otel-motel-logs
+    pipeline: otel-motel-logs-ecs
     mapping:
       mode: ecs
-    
-  # Export traces to Elasticsearch
-  elasticsearch/traces:
-    endpoints: ["http://elasticsearch:9200"]
-    traces_index: otel-motel-traces
-    mapping:
-      mode: ecs
-  
-  # Export metrics to Elasticsearch
-  elasticsearch/metrics:
-    endpoints: ["http://elasticsearch:9200"]
-    metrics_index: otel-motel-metrics
-    mapping:
-      mode: ecs
-  
+
   # Logging exporter for debugging
   logging:
     verbosity: detailed
-
-  # Prometheus metrics exporter
-  prometheus:
-    endpoint: "0.0.0.0:8889"
 
 extensions:
   health_check:
@@ -65,16 +48,6 @@ extensions:
 service:
   extensions: [health_check, pprof, zpages]
   pipelines:
-    traces:
-      receivers: [otlp]
-      processors: [memory_limiter, batch, resource]
-      exporters: [elasticsearch/traces, logging]
-    
-    metrics:
-      receivers: [otlp]
-      processors: [memory_limiter, batch, resource]
-      exporters: [elasticsearch/metrics, prometheus, logging]
-    
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch, resource]

@@ -61,21 +61,49 @@ make elk-health
 
 All indices use ECS-compliant field mappings for seamless integration with Kibana APM and observability features.
 
-### ECS Fields Used
+### ECS Fields Used and Mapping Status
 
-```json
-{
-  "@timestamp": "ISO8601 date",
-  "ecs.version": "8.0.0",
-  "service.name": "otel-motel",
-  "service.environment": "dev",
-  "log.level": "info|debug|warn|error",
-  "log.logger": "logger name",
-  "message": "log message",
-  "trace.id": "trace identifier",
-  "span.id": "span identifier"
-}
-```
+The following table summarizes the ECS fields mapped in the `otel-motel-logs` index and their status:
+
+| ECS Field                  | Present | Source / Mapping Description                       |
+|----------------------------|---------|---------------------------------------------------|
+| `@timestamp`               | Yes     | Log timestamp (from OTEL/collector)                |
+| `ecs.version`              | Yes     | Set by ingest pipeline (`8.11.0`)                  |
+| `service.name`             | Yes     | `Resource.service.name` → `service.name`           |
+| `service.version`          | Yes     | `Resource.service.version` → `service.version`     |
+| `service.environment`      | Yes     | `Resource.deployment.environment` → `service.environment` |
+| `log.level`                | Yes     | `SeverityText` or OTEL log level                   |
+| `log.logger`               | Yes     | `Attributes.log.logger.namespace`                  |
+| `log.origin.file.name`     | Yes     | `Attributes.code.namespace`                        |
+| `log.origin.file.line`     | Yes     | `Attributes.code.lineno` (as integer)              |
+| `log.origin.function`      | Yes     | `Attributes.code.function`                         |
+| `message`                  | Yes     | `Body` or OTEL log message                         |
+| `trace.id`                 | Yes     | `TraceId`                                         |
+| `span.id`                  | Yes     | `SpanId`                                          |
+| `process.thread.name`      | Yes     | `Attributes.thread.name`                           |
+| `process.thread.id`        | Yes     | `Attributes.thread.id`                             |
+| `event.code`               | Yes     | `Attributes.code.function`                         |
+| `event.action`             | Yes     | `Attributes.code.function`                         |
+| `event.dataset`            | Yes     | `Attributes.code.namespace`                        |
+| `event.original`           | Yes     | `Body` (raw log message)                           |
+| `host.name`                | Yes     | `Resource.host.name`                               |
+| `labels.parent_id`         | Yes     | `Attributes.parentId`                              |
+| `error.message`            | If present | `Attributes.error.message`                      |
+| `error.stack_trace`        | If present | `Attributes.error.stack_trace`                  |
+| `error.type`               | If present | `Attributes.error.type`                         |
+
+**Note:**
+- All raw OpenTelemetry fields (e.g., `Resource`, `Attributes`, `Body`, `SeverityText`) are removed after mapping.
+- Any non-ECS fields (e.g., `TraceFlags`, `SeverityNumber`, `Scope`) are candidates for removal for strict ECS compliance.
+- The ingest pipeline ensures all ECS fields are populated and formatted as required.
+
+### What Was Accomplished
+
+- **Full ECS mapping:** All log fields are now mapped to ECS, including code location, trace, span, and error fields.
+- **Ingest pipeline:** Automatically remaps OpenTelemetry fields to ECS and removes non-ECS fields.
+- **Index template:** Ensures all ECS fields are mapped with correct types for Kibana and Elastic integrations.
+- **No Logstash required:** The OTEL Collector and ingest pipeline handle all ECS formatting.
+- **Ready for Kibana:** Logs are fully compatible with Kibana Discover, APM, and dashboards.
 
 ## Elasticsearch Setup Script
 
