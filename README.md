@@ -4,6 +4,27 @@ This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
 
+## OpenTelemetry Observability
+
+This application includes **OpenTelemetry (OTEL)** support for enhanced observability with:
+- **Distributed Tracing**: Track requests across the application
+- **Metrics Collection**: Monitor application performance
+- **Log Correlation**: Link logs with traces for better debugging
+
+For detailed setup instructions, see [OTEL-SETUP.md](OTEL-SETUP.md).
+
+### Quick Start with Observability
+
+1. Start Jaeger: `docker-compose up -d`
+2. Run the application: `./mvnw quarkus:dev`
+3. View traces: http://localhost:16686
+
+## Prerequisites
+
+- **Java 21** (required)
+- Maven 3.9.x or higher
+- Docker and Docker Compose (for observability stack)
+
 ## Running the application in dev mode
 
 You can run your application in dev mode that enables live coding using:
