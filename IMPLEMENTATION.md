@@ -16,23 +16,22 @@ Successfully transformed the otel-motel project from a simple "Hello World" Grap
   - ~200 bookings spanning 3 months
 
 ### 2. Database Layer
-- **PostgreSQL 16**: Production-ready database
-- **Hibernate ORM Panache**: Modern JPA implementation
-- **Automatic Schema Management**: drop-and-create for development
-- **Relationship Management**: Proper FK constraints and lazy loading
+- **DynamoDB LocalStack**: Local DynamoDB for development
+- **AWS SDK Enhanced Client**: Modern DynamoDB SDK
+- **NoSQL Data Model**: Document-based storage
+- **Local Development**: Full DynamoDB emulation with LocalStack
 
 ### 3. Observability Stack (ELK + OTEL)
 - **OpenTelemetry Collector**: HTTP/Protobuf export
 - **Elasticsearch 8.11**: ECS-compliant log storage
-- **Logstash 8.11**: Log processing pipeline with ECS mapping
 - **Kibana 8.11**: Visualization and APM
 - **ECS Compliance**: Full Elastic Common Schema implementation
+- **Direct Export**: OTEL Collector exports directly to Elasticsearch
 
 ### 4. Docker Infrastructure
-- **docker-compose.yml**: 5 services orchestrated
-  - PostgreSQL
+- **docker-compose.yml**: 4 services orchestrated
+  - DynamoDB (LocalStack)
   - Elasticsearch
-  - Logstash
   - Kibana
   - OpenTelemetry Collector
 - **Health Checks**: Proper service dependencies
@@ -41,7 +40,6 @@ Successfully transformed the otel-motel project from a simple "Hello World" Grap
 
 ### 5. Configuration & Scripts
 - **OTEL Collector Config**: Complete telemetry pipeline
-- **Logstash Pipeline**: ECS-compliant log processing
 - **Elasticsearch Setup Script**: Index templates and ILM policies
 - **Application Properties**: Optimized for development
 
@@ -87,16 +85,17 @@ Created comprehensive documentation across 9 files:
 #### Technology Stack
 - **Java 17**: Adjusted from 21 for compatibility
 - **Quarkus 3.27**: Latest stable version
-- **PostgreSQL 16**: Modern, reliable database
-- **ELK 8.11**: Latest Elastic Stack
+- **DynamoDB LocalStack**: Local NoSQL database
+- **ELK 8.11**: Elasticsearch and Kibana
 - **OTEL Collector**: Vendor-neutral observability
 
 #### Key Design Choices
 - **HTTP/Protobuf**: Replaced gRPC for better compatibility
 - **ECS Compliance**: Industry-standard log format
-- **Panache Pattern**: Active Record pattern for simplicity
+- **DynamoDB Enhanced Client**: Modern NoSQL pattern
 - **Sample Data**: Realistic 50% occupancy simulation
 - **Makefile**: Developer-friendly task automation
+- **Direct OTEL Export**: No Logstash intermediary needed
 
 ## File Statistics
 
@@ -219,13 +218,12 @@ make clean build    # Clean build
 ```
 otel-motel/
 ├── src/main/java/com/johnnyb/
-│   ├── entity/              # 4 JPA entities
+│   ├── entity/              # DynamoDB entities
 │   ├── graphql/             # GraphQL API
 │   └── service/             # Business logic
 ├── docker/                  # OTEL Collector config
 ├── elk/                     # ELK configuration
-│   ├── elasticsearch/       # Index templates
-│   └── logstash/           # Pipeline config
+│   └── elasticsearch/       # Index templates
 ├── bruno/                  # API test collection
 │   ├── Hotels/
 │   ├── Rooms/
@@ -243,7 +241,7 @@ otel-motel/
 ✅ **Build**: Clean compile and package
 ✅ **Dependencies**: All properly configured
 ✅ **Configuration**: ECS-compliant logging
-✅ **Infrastructure**: 5-service Docker stack
+✅ **Infrastructure**: 4-service Docker stack
 ✅ **API**: 16 GraphQL operations
 ✅ **Data**: Sample data auto-loads
 ✅ **Observability**: Full OTEL + ELK integration
@@ -257,15 +255,13 @@ otel-motel/
 ### Backend
 - Quarkus 3.27.0
 - Java 17
-- Hibernate ORM Panache
+- AWS SDK Enhanced DynamoDB Client
 - SmallRye GraphQL
-- PostgreSQL JDBC Driver
 
 ### Observability
 - OpenTelemetry SDK
 - OTEL Collector Contrib
 - Elasticsearch 8.11
-- Logstash 8.11
 - Kibana 8.11
 - ECS Logging
 

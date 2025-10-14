@@ -5,7 +5,7 @@ A modern hotel booking GraphQL server built with Quarkus, featuring comprehensiv
 ## 🌟 Features
 
 - **GraphQL API** - Complete hotel booking system with queries and mutations
-- **Database** - PostgreSQL with Hibernate ORM Panache
+- **Database** - DynamoDB with LocalStack for local development
 - **Sample Data** - Pre-loaded with 5 hotels, 10 customers, and ~50% booking capacity
 - **Observability** - Full OpenTelemetry integration with ELK stack
 - **ECS Compliance** - Elasticsearch logs follow Elastic Common Schema
@@ -31,7 +31,7 @@ brew install openjdk@17 docker docker-compose
 ### 1. Start Infrastructure
 
 ```bash
-make docker-up    # Start PostgreSQL, ELK stack, OTEL Collector
+make docker-up    # Start DynamoDB, ELK stack, OTEL Collector
 make elk-setup    # Initialize Elasticsearch indices
 ```
 
@@ -59,7 +59,7 @@ make dev          # Start in development mode with hot reload
 - **[GraphQL API Documentation](docs/graphql/README.md)** - Complete API reference
 - **[Documentation Index](docs/README.md)** - All documentation organized
 - **[Docker Configuration](docker/README.md)** - Container setup and OTEL Collector
-- **[ELK Stack Guide](elk/README.md)** - Elasticsearch, Logstash, Kibana setup
+- **[ELK Stack Guide](elk/README.md)** - Elasticsearch and Kibana setup
 - **[Bruno API Collection](bruno/README.md)** - GraphQL API testing
 - **[OpenTelemetry Setup](OTEL-SETUP.md)** - Observability configuration
 
@@ -75,22 +75,20 @@ make dev          # Start in development mode with hot reload
     │         │
     ▼         ▼
 ┌──────┐  ┌──────────────┐
-│ DB   │  │ OTEL         │
-│ (PG) │  │ Collector    │
+│  DB  │  │ OTEL         │
+│(DDB) │  │ Collector    │
 └──────┘  └──────┬───────┘
                  │
-         ┌───────┴────────┐
-         │                │
-         ▼                ▼
-    ┌──────────┐    ┌─────────┐
-    │ Elastic  │◄───│ Logstash│
-    │ search   │    └─────────┘
-    └────┬─────┘
-         │
-         ▼
-    ┌─────────┐
-    │ Kibana  │
-    └─────────┘
+                 ▼
+            ┌──────────┐
+            │ Elastic  │
+            │ search   │
+            └────┬─────┘
+                 │
+                 ▼
+            ┌─────────┐
+            │ Kibana  │
+            └─────────┘
 ```
 
 ## 📊 Data Model
@@ -252,7 +250,7 @@ quarkus.otel.exporter.otlp.protocol=http/protobuf
 ```
 otel-motel/
 ├── src/main/java/com/johnnyb/
-│   ├── entity/              # JPA entities (Hotel, Room, Booking, Customer)
+│   ├── entity/              # DynamoDB entities (Hotel, Room, Booking, Customer)
 │   ├── graphql/             # GraphQL resources and resolvers
 │   └── service/             # Business logic and data initialization
 ├── src/main/resources/
@@ -262,7 +260,6 @@ otel-motel/
 │   └── README.md            # Docker documentation
 ├── elk/
 │   ├── elasticsearch/       # ES index templates and scripts
-│   ├── logstash/           # Log processing pipeline
 │   └── README.md           # ELK documentation
 ├── bruno/                  # Bruno API collection
 │   ├── Hotels/             # Hotel queries
@@ -312,22 +309,23 @@ make build-native
 
 ## 🗄️ Database
 
-### Connect to Database
+### Connect to DynamoDB
 ```bash
-make db-console
+make dynamodb-console      # Open DynamoDB CLI
+make dynamodb-list-tables  # List all tables
 ```
 
 ### Reset Database
 ```bash
-make db-reset
+make dynamodb-reset
 ```
 
 ### Configuration
 ```properties
-Database: otelmotel
-User: otelmotel
-Password: otelmotel123
-Port: 5432
+Endpoint: http://localhost:4566
+Region: us-east-1
+AWS Access Key: test
+AWS Secret Key: test
 ```
 
 ## 📈 Monitoring & Observability
@@ -359,13 +357,13 @@ make otel-metrics
 ## 🌍 Environments
 
 Currently configured for **dev** environment:
-- Local PostgreSQL database
+- Local DynamoDB (LocalStack)
 - Single-node Elasticsearch
 - Debug logging enabled
 - Hot reload enabled
 
 Future considerations for **staging** and **prod**:
-- Multi-node database cluster
+- AWS DynamoDB in cloud
 - Elasticsearch cluster with replication
 - Production logging levels
 - Security and authentication

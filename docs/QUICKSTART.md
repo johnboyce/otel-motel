@@ -32,7 +32,7 @@ make build
 ## Step 2: Start Services (2 min)
 
 ```bash
-# Start Docker services (PostgreSQL, ELK, OTEL Collector)
+# Start Docker services (DynamoDB, ELK, OTEL Collector)
 make docker-up
 
 # Wait 30 seconds for services to start, then initialize Elasticsearch
@@ -160,20 +160,19 @@ make docker-ps
 ```
 
 Should show:
-- PostgreSQL (port 5432)
+- DynamoDB/LocalStack (port 4566)
 - Elasticsearch (port 9200)
 - Kibana (port 5601)
-- Logstash (port 5044)
 - OTEL Collector (port 4318)
 
 ## Useful Commands
 
 ```bash
-make help           # Show all commands
-make elk-health     # Check ELK status
-make db-console     # Connect to database
-make elk-logs       # View recent logs
-make docker-logs    # View all service logs
+make help              # Show all commands
+make elk-health        # Check ELK status
+make dynamodb-console  # Connect to database
+make elk-logs          # View recent logs
+make docker-logs       # View all service logs
 ```
 
 ## Stop Everything
@@ -187,7 +186,7 @@ make stop           # Stop all services
 ### Port Already in Use
 ```bash
 make docker-down
-lsof -i :5432  # Check what's using port
+lsof -i :4566  # Check what's using DynamoDB port
 ```
 
 ### Services Not Starting
@@ -220,7 +219,7 @@ The system comes pre-loaded with:
 ## Architecture at a Glance
 
 ```
-You → GraphQL API → PostgreSQL (data)
+You → GraphQL API → DynamoDB (data)
                  ↓
                OTEL Collector
                  ↓

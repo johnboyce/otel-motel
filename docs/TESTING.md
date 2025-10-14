@@ -408,38 +408,33 @@ make elk-logs
 
 ### Verify Data Initialization
 ```bash
-make db-console
+make dynamodb-list-tables
 ```
 
-Then in psql:
-```sql
--- Check hotel count
-SELECT COUNT(*) FROM hotels;
--- Expected: 5
+**Expected**: Returns list of DynamoDB tables (hotels, rooms, customers, bookings)
 
--- Check room count
-SELECT COUNT(*) FROM rooms;
--- Expected: 108
+### Verify Data in DynamoDB
+```bash
+# Access DynamoDB console
+make dynamodb-console
 
--- Check customer count
-SELECT COUNT(*) FROM customers;
--- Expected: 10
+# List tables
+awslocal dynamodb list-tables
 
--- Check booking count
-SELECT COUNT(*) FROM bookings;
--- Expected: ~200 (varies)
+# Scan a table (example)
+awslocal dynamodb scan --table-name hotels
 
--- Check booking distribution
-SELECT status, COUNT(*) FROM bookings GROUP BY status;
+# Get item count
+awslocal dynamodb scan --table-name hotels --select COUNT
 ```
 
 ### Test Database Reset
 ```bash
-make db-reset
+make dynamodb-reset
 make dev  # Restart app to reinitialize
 ```
 
-**Expected**: Data is recreated
+**Expected**: Tables are deleted and data is recreated
 
 ## Integration Testing Checklist
 
@@ -517,18 +512,19 @@ bru run bruno/Hotels/"Get All Hotels.bru"
 
 ### 3. Database Verification
 ```bash
-make db-console
-\dt  # List tables
-SELECT * FROM hotels;
-SELECT * FROM rooms LIMIT 10;
-SELECT * FROM bookings LIMIT 10;
+make dynamodb-console
+# Use awslocal commands to query DynamoDB
+awslocal dynamodb list-tables
+awslocal dynamodb scan --table-name hotels
+awslocal dynamodb scan --table-name rooms --limit 10
+awslocal dynamodb scan --table-name bookings --limit 10
 ```
 
 ## Common Issues
 
 ### Issue: Port Already in Use
 ```
-Error: Port 5432 already in use
+Error: Port 4566 already in use
 ```
 
 **Solution**:
@@ -540,13 +536,14 @@ docker stop $(docker ps -aq)
 
 ### Issue: Database Connection Failed
 ```
-Error: Connection refused to localhost:5432
+Error: Connection refused to localhost:4566
 ```
 
 **Solution**:
 ```bash
-make docker-ps  # Check if PostgreSQL is running
-make docker-logs postgres  # Check logs
+make docker-ps  # Check if DynamoDB (LocalStack) is running
+make docker-logs dynamodb  # Check logs
+docker exec otel-motel-dynamodb awslocal dynamodb list-tables  # Test connection
 ```
 
 ### Issue: No Logs in Kibana
