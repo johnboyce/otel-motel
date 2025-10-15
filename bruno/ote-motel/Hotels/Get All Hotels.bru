@@ -5,9 +5,13 @@ meta {
 }
 
 post {
-  url: http://localhost:8080/graphql
+  url: {{graphql_url}}
   body: graphql
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
 }
 
 body:graphql {
@@ -22,4 +26,11 @@ body:graphql {
       starRating
     }
   }
+}
+
+docs {
+  # Get All Hotels
+  
+  This query is public and does not require authentication.
+  However, the token will be sent if available in the environment.
 }

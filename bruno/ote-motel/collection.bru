@@ -8,9 +8,57 @@ docs {
     2. The GraphQL endpoint is: http://localhost:8080/graphql
     3. GraphQL UI is available at: http://localhost:8080/q/graphql-ui
     
+    ## Authentication
+    The collection supports multiple environments:
+    - **Development (No Auth)**: For local development without authentication
+    - **User**: Authenticated as a regular user with `user` role
+    - **Admin**: Authenticated as an admin with `admin` and `user` roles
+    
+    Pre-request scripts automatically obtain JWT tokens from Keycloak when auth_enabled is true.
+    
     ## Collections
-    - Hotels: Query hotel information
-    - Rooms: Query room availability
-    - Bookings: Create and manage bookings
-    - Customers: Query customer information
+    - Hotels: Query hotel information (public access)
+    - Rooms: Query room availability (public access)
+    - Bookings: Create and manage bookings (requires authentication)
+    - Customers: Query customer information (requires authentication)
+}
+
+script:pre-request {
+  const authEnabled = bru.getEnvVar("auth_enabled");
+  
+  if (authEnabled === "true" || authEnabled === true) {
+    const tokenUrl = `${bru.getEnvVar("keycloak_url")}/realms/${bru.getEnvVar("keycloak_realm")}/protocol/openid-connect/token`;
+    const clientId = bru.getEnvVar("keycloak_client_id");
+    const clientSecret = bru.getEnvVar("keycloak_client_secret");
+    const username = bru.getEnvVar("username");
+    const password = bru.getEnvVar("password");
+    
+    // Check if we have a valid token
+    const currentToken = bru.getEnvVar("access_token");
+    
+    // For simplicity, always get a fresh token
+    // In production, you would check token expiry
+    const params = new URLSearchParams();
+    params.append('grant_type', 'password');
+    params.append('client_id', clientId);
+    params.append('client_secret', clientSecret);
+    params.append('username', username);
+    params.append('password', password);
+    
+    const res = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: params.toString()
+    });
+    
+    if (res.status === 200) {
+      const data = await res.json();
+      bru.setEnvVar("access_token", data.access_token);
+      console.log("Token obtained successfully");
+    } else {
+      console.error("Failed to obtain token:", res.status);
+    }
+  }
 }

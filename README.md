@@ -5,13 +5,14 @@ A modern hotel booking GraphQL server built with Quarkus, featuring comprehensiv
 ## 🌟 Features
 
 - **GraphQL API** - Complete hotel booking system with queries and mutations
+- **OAuth2/OIDC Security** - JWT-based authentication with role-based access control
 - **Database** - DynamoDB with LocalStack for local development
 - **Sample Data** - Pre-loaded with 5 hotels, 10 customers, and ~50% booking capacity
 - **Observability** - Full OpenTelemetry integration with ELK stack
 - **ECS Compliance** - Elasticsearch logs follow Elastic Common Schema
 - **HTTP/Protobuf** - OTLP export using modern HTTP/Protobuf protocol
 - **Docker Compose** - Complete local development stack
-- **Bruno Collection** - Ready-to-use API test collection
+- **Bruno Collection** - Ready-to-use API test collection with authentication
 - **Makefile** - Structured task automation for developers
 
 ## 🚀 Quick Start
@@ -48,6 +49,7 @@ make dev          # Start in development mode with hot reload
 | GraphQL UI | http://localhost:8080/q/graphql-ui | Interactive API explorer |
 | GraphQL Endpoint | http://localhost:8080/graphql | API endpoint |
 | Dev UI | http://localhost:8080/q/dev | Quarkus dev console |
+| Keycloak | http://localhost:8180 | Authentication server (admin/admin) |
 | Kibana | http://localhost:5601 | Log and trace visualization |
 | Elasticsearch | http://localhost:9200 | Data store |
 | OTEL Collector | http://localhost:4318 | Telemetry collector |
@@ -55,12 +57,13 @@ make dev          # Start in development mode with hot reload
 ## 📚 Documentation
 
 - **[Quick Start Guide](docs/QUICKSTART.md)** - Get running in 5 minutes!
+- **[Security Setup Guide](docs/SECURITY.md)** - OAuth2/OIDC authentication and authorization
 - **[Testing Guide](docs/TESTING.md)** - Comprehensive test scenarios
 - **[GraphQL API Documentation](docs/graphql/README.md)** - Complete API reference
 - **[Documentation Index](docs/README.md)** - All documentation organized
 - **[Docker Configuration](docker/README.md)** - Container setup and OTEL Collector
 - **[ELK Stack Guide](elk/README.md)** - Elasticsearch and Kibana setup
-- **[Bruno API Collection](bruno/README.md)** - GraphQL API testing
+- **[Bruno API Collection](bruno/README.md)** - GraphQL API testing with authentication
 - **[OpenTelemetry Setup](OTEL-SETUP.md)** - Observability configuration
 
 ## 🏗️ Architecture

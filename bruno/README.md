@@ -25,36 +25,106 @@ Download from: https://www.usebruno.com/downloads
 npm install -g @usebruno/cli
 ```
 
+## Authentication Setup
+
+The collection supports three environments with different authentication modes:
+
+### 1. Development (No Auth)
+- **Use for:** Local development without security
+- **Authentication:** Disabled
+- **Best for:** Rapid development and testing
+
+### 2. User
+- **Use for:** Testing as a regular user
+- **Username:** user1
+- **Password:** password
+- **Roles:** `user`
+- **Can access:** Public endpoints, own bookings, customer data
+
+### 3. Admin
+- **Use for:** Testing as an administrator
+- **Username:** admin1
+- **Password:** admin
+- **Roles:** `admin`, `user`
+- **Can access:** All endpoints including admin-only operations
+
+## Quick Start
+
+### 1. Start Services
+```bash
+# Start all services including Keycloak
+docker compose up -d
+
+# Wait for Keycloak to initialize (60-90 seconds)
+docker compose logs -f keycloak
+```
+
+### 2. Start Application
+```bash
+# Development mode (no auth)
+make dev
+
+# Or with authentication enabled
+./mvnw quarkus:dev -Dquarkus.profile=prod
+```
+
+### 3. Open Bruno
+1. Launch Bruno
+2. File → Open Collection
+3. Navigate to `./bruno/ote-motel`
+4. Select an environment from the dropdown
+
+### 4. Run Requests
+- The pre-request script automatically obtains JWT tokens
+- Click "Send" on any request
+- Tokens are automatically attached
+
 ## Collection Structure
 
 ```
-bruno/
-├── bruno.json                    # Collection metadata
+bruno/ote-motel/
+├── collection.bru                          # Collection config with pre-request script
+├── environments/
+│   ├── Development (No Auth).bru          # No authentication
+│   ├── User.bru                           # User role
+│   └── Admin.bru                          # Admin role
 ├── Hotels/
-│   ├── Get All Hotels.bru
-│   ├── Get Hotel by ID.bru
-│   └── Get Hotels by City.bru
+│   ├── Get All Hotels.bru                 # Public
+│   ├── Get Hotel by ID.bru                # Public
+│   └── Get Hotels by City.bru             # Public
 ├── Rooms/
-│   ├── Get Available Rooms.bru
-│   └── Get Rooms by Hotel.bru
+│   ├── Get Available Rooms.bru            # Public
+│   └── Get Rooms by Hotel.bru             # Public
 ├── Bookings/
-│   ├── Create Booking.bru
-│   ├── Get Upcoming Bookings.bru
-│   ├── Get Bookings by Customer.bru
-│   └── Cancel Booking.bru
+│   ├── Create Booking.bru                 # Requires: user, admin
+│   ├── Get Upcoming Bookings.bru          # Requires: admin only
+│   ├── Get Bookings by Customer.bru       # Requires: user, admin
+│   └── Cancel Booking.bru                 # Requires: user, admin
 └── Customers/
-    └── Get Customer by Email.bru
+    └── Get Customer by Email.bru          # Requires: user, admin
 ```
 
 ## Usage
 
 ### Prerequisites
-1. Start the application:
+1. Start Keycloak and all services:
    ```bash
-   make dev
+   docker compose up -d
    ```
 
-2. Ensure the GraphQL endpoint is accessible:
+2. Wait for Keycloak initialization (check logs):
+   ```bash
+   docker compose logs -f keycloak
+   ```
+
+3. Start the application:
+   ```bash
+   make dev  # For no-auth development
+   # or
+   ./mvnw quarkus:dev -Dquarkus.profile=prod  # For auth-enabled testing
+   ```
+
+4. Ensure the GraphQL endpoint is accessible:
    ```
    http://localhost:8080/graphql
    ```
@@ -63,27 +133,58 @@ bruno/
 
 1. Open Bruno
 2. Open Collection: `File` → `Open Collection`
-3. Select the `bruno/` directory
-4. Execute requests by clicking "Send"
+3. Select the `bruno/ote-motel` directory
+4. **Select an environment** from the dropdown (top-right):
+   - "Development (No Auth)" - for local testing without security
+   - "User" - for testing with user role
+   - "Admin" - for testing with admin role
+5. Execute requests by clicking "Send"
+
+The collection includes automatic token management:
+- Pre-request scripts fetch JWT tokens from Keycloak
+- Tokens are automatically attached to requests
+- No manual token management required
 
 ### Using Bruno CLI
 
 Run all requests:
 ```bash
-bru run bruno/
+bru run bruno/ote-motel/
 ```
 
 Run specific folder:
 ```bash
-bru run bruno/Hotels/
+bru run bruno/ote-motel/Hotels/
 ```
 
 Run specific request:
 ```bash
-bru run bruno/Hotels/"Get All Hotels.bru"
+bru run bruno/ote-motel/Hotels/"Get All Hotels.bru"
+```
+
+Run with specific environment:
+```bash
+bru run bruno/ote-motel/ --env "User"
 ```
 
 ## API Endpoints
+
+### Security Roles
+
+The API implements role-based access control with two roles:
+
+**Public Access (No Authentication)**
+- All hotel queries
+- All room queries
+
+**User Role (`user`)**
+- View and create own bookings
+- View customer information
+- Cancel bookings
+
+**Admin Role (`admin`)**
+- All user permissions
+- View all upcoming bookings across all customers
 
 ### Hotels
 
@@ -313,6 +414,8 @@ Error: Room is not available for the selected dates
 - [Bruno Documentation](https://docs.usebruno.com/)
 - [GraphQL Specification](https://graphql.org/learn/)
 - [otel-motel GraphQL UI](http://localhost:8080/q/graphql-ui)
+- [Security Setup Guide](../docs/SECURITY.md) - Complete security and authentication guide
+- [Keycloak Admin Console](http://localhost:8180) - Username: admin, Password: admin
 
 ## Contributing
 

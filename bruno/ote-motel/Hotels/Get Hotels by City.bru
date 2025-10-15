@@ -5,9 +5,13 @@ meta {
 }
 
 post {
-  url: http://localhost:8080/graphql
+  url: {{graphql_url}}
   body: graphql
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
 }
 
 body:graphql {
@@ -21,4 +25,11 @@ body:graphql {
       starRating
     }
   }
+}
+
+docs {
+  # Get Hotels by City
+  
+  This query is public and does not require authentication.
+  Change the city parameter to search for hotels in different cities.
 }
