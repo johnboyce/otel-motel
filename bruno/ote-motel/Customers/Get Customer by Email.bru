@@ -5,9 +5,13 @@ meta {
 }
 
 post {
-  url: http://localhost:8080/graphql
+  url: {{graphql_url}}
   body: graphql
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
 }
 
 body:graphql {
@@ -33,4 +37,13 @@ body:graphql {
       }
     }
   }
+}
+
+docs {
+  # Get Customer by Email
+  
+  **Requires authentication** with `user` or `admin` role.
+  
+  Replace the email parameter with the customer's email address.
+  Sample data includes: john.doe@example.com
 }

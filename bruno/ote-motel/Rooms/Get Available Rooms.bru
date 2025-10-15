@@ -5,9 +5,13 @@ meta {
 }
 
 post {
-  url: http://localhost:8080/graphql
+  url: {{graphql_url}}
   body: graphql
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
 }
 
 body:graphql {
@@ -26,6 +30,8 @@ body:graphql {
 
 docs {
   # Get Available Rooms
+  
+  This query is public and does not require authentication.
   
   Replace `REPLACE_WITH_ACTUAL_HOTEL_ID` with an actual hotel ID from the system.
   Also update the checkIn and checkOut dates as needed.

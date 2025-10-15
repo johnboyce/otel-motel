@@ -5,9 +5,13 @@ meta {
 }
 
 post {
-  url: http://localhost:8080/graphql
+  url: {{graphql_url}}
   body: graphql
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
 }
 
 body:graphql {
@@ -23,4 +27,11 @@ body:graphql {
       status
     }
   }
+}
+
+docs {
+  # Get Upcoming Bookings
+  
+  **Requires authentication** with `admin` role only.
+  This endpoint returns all upcoming bookings across all customers.
 }
