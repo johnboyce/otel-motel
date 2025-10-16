@@ -5,13 +5,14 @@ A modern hotel booking GraphQL server built with Quarkus, featuring comprehensiv
 ## 🌟 Features
 
 - **GraphQL API** - Complete hotel booking system with queries and mutations
-- **OAuth2/OIDC Security** - JWT-based authentication with role-based access control
-- **Database** - DynamoDB with LocalStack for local development
+- **OAuth2/OIDC Security** - JWT-based authentication with role-based access control (via Keycloak)
+- **Keycloak Authentication** - Persistent user authentication with PostgreSQL backend
+- **Database** - DynamoDB with LocalStack for application data, PostgreSQL for Keycloak
 - **Sample Data** - Pre-loaded with 5 hotels, 10 customers, and ~50% booking capacity
 - **Observability** - Full OpenTelemetry integration with ELK stack
 - **ECS Compliance** - Elasticsearch logs follow Elastic Common Schema
 - **HTTP/Protobuf** - OTLP export using modern HTTP/Protobuf protocol
-- **Docker Compose** - Complete local development stack
+- **Docker Compose** - Complete local development stack with organized structure
 - **Bruno Collection** - Ready-to-use API test collection with authentication
 - **Makefile** - Structured task automation for developers
 
@@ -32,7 +33,7 @@ brew install openjdk@17 docker docker-compose
 ### 1. Start Infrastructure
 
 ```bash
-make docker-up    # Start DynamoDB, ELK stack, OTEL Collector
+make docker-up    # Start PostgreSQL, DynamoDB, ELK stack, OTEL Collector, Keycloak
 make elk-setup    # Initialize Elasticsearch indices
 ```
 
@@ -53,6 +54,7 @@ make dev          # Start in development mode with hot reload
 | Kibana | http://localhost:5601 | Log and trace visualization |
 | Elasticsearch | http://localhost:9200 | Data store |
 | OTEL Collector | http://localhost:4318 | Telemetry collector |
+| PostgreSQL | localhost:5432 | Keycloak database (keycloak/keycloak) |
 
 ## 📚 Documentation
 
@@ -74,24 +76,24 @@ make dev          # Start in development mode with hot reload
 │  (Quarkus)      │
 └────────┬────────┘
          │
-    ┌────┴────┐
-    │         │
-    ▼         ▼
-┌──────┐  ┌──────────────┐
-│  DB  │  │ OTEL         │
-│(DDB) │  │ Collector    │
-└──────┘  └──────┬───────┘
-                 │
-                 ▼
-            ┌──────────┐
-            │ Elastic  │
-            │ search   │
-            └────┬─────┘
-                 │
-                 ▼
-            ┌─────────┐
-            │ Kibana  │
-            └─────────┘
+    ┌────┴────┬────────────────┐
+    │         │                │
+    ▼         ▼                ▼
+┌──────┐  ┌────────┐   ┌──────────────┐
+│  DB  │  │Keycloak│   │ OTEL         │
+│(DDB) │  │ (Auth) │   │ Collector    │
+└──────┘  └───┬────┘   └──────┬───────┘
+              │                │
+              ▼                ▼
+         ┌─────────┐      ┌──────────┐
+         │Postgres │      │ Elastic  │
+         │(Keycloak)      │ search   │
+         └─────────┘      └────┬─────┘
+                               │
+                               ▼
+                          ┌─────────┐
+                          │ Kibana  │
+                          └─────────┘
 ```
 
 ## 📊 Data Model
@@ -312,6 +314,16 @@ make build-native
 
 ## 🗄️ Database
 
+The application uses two databases:
+- **DynamoDB (LocalStack)**: Application data (hotels, rooms, bookings, customers)
+- **PostgreSQL**: Keycloak authentication and user data
+
+### Connect to PostgreSQL (Keycloak)
+```bash
+make postgres-console    # Open psql console
+make postgres-backup     # Backup Keycloak database
+```
+
 ### Connect to DynamoDB
 ```bash
 make dynamodb-console      # Open DynamoDB CLI
@@ -320,10 +332,20 @@ make dynamodb-list-tables  # List all tables
 
 ### Reset Database
 ```bash
-make dynamodb-reset
+make dynamodb-reset        # Reset DynamoDB tables
+# PostgreSQL: Stop docker, remove volume, restart
 ```
 
-### Configuration
+### PostgreSQL Configuration
+```properties
+Host: localhost
+Port: 5432
+Database: keycloak
+User: keycloak
+Password: keycloak
+```
+
+### DynamoDB Configuration
 ```properties
 Endpoint: http://localhost:4566
 Region: us-east-1
