@@ -187,6 +187,23 @@ docs-serve: ## Serve documentation (requires Python)
 
 ##@ Database
 
+postgres-console: ## Open PostgreSQL console for Keycloak database
+	@echo "$(GREEN)Connecting to PostgreSQL...$(NC)"
+	@echo "$(CYAN)Database: keycloak, User: keycloak$(NC)"
+	@docker exec -it otel-motel-postgres psql -U keycloak -d keycloak
+
+postgres-backup: ## Backup Keycloak database
+	@echo "$(GREEN)Backing up Keycloak database...$(NC)"
+	@mkdir -p backups
+	@docker exec otel-motel-postgres pg_dump -U keycloak keycloak > backups/keycloak-$(shell date +%Y%m%d-%H%M%S).sql
+	@echo "$(GREEN)✓ Backup completed in backups/$(NC)"
+
+postgres-restore: ## Restore Keycloak database from backup (set BACKUP_FILE=path/to/backup.sql)
+	@echo "$(YELLOW)Restoring Keycloak database from $(BACKUP_FILE)...$(NC)"
+	@test -n "$(BACKUP_FILE)" || (echo "$(RED)Error: BACKUP_FILE not set$(NC)" && exit 1)
+	@docker exec -i otel-motel-postgres psql -U keycloak keycloak < $(BACKUP_FILE)
+	@echo "$(GREEN)✓ Database restored$(NC)"
+
 dynamodb-console: ## Open AWS CLI for DynamoDB
 	@echo "$(GREEN)Connecting to DynamoDB...$(NC)"
 	@echo "$(CYAN)Use 'awslocal dynamodb' commands$(NC)"

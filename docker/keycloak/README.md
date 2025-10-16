@@ -269,6 +269,17 @@ curl -X GET http://localhost:8180/realms/otel-motel/protocol/openid-connect/user
 
 ## Production Considerations
 
+### Database
+
+Keycloak uses PostgreSQL for data persistence in this setup. The database configuration is:
+- **Host**: postgres (Docker service name)
+- **Port**: 5432
+- **Database**: keycloak
+- **User**: keycloak
+- **Password**: keycloak (⚠️ change in production!)
+
+For more details on the PostgreSQL setup, see [PostgreSQL Configuration](../postgres/README.md).
+
 ### ⚠️ Security Warnings
 
 **DO NOT use these settings in production:**
@@ -285,7 +296,8 @@ curl -X GET http://localhost:8180/realms/otel-motel/protocol/openid-connect/user
 - [ ] Enable SSL/HTTPS
 - [ ] Restrict redirect URIs
 - [ ] Restrict web origins
-- [ ] Use external database (not dev-mem)
+- [ ] Use external database (PostgreSQL with proper backups)
+- [ ] Use strong database passwords
 - [ ] Enable realm caching
 - [ ] Configure backup strategy
 - [ ] Set up monitoring
