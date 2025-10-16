@@ -1,3 +1,28 @@
+auth {
+  mode: oauth2
+}
+
+auth:oauth2 {
+  grant_type: password
+  access_token_url: {{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/token
+  refresh_token_url: 
+  username: {{username}}
+  password: {{password}}
+  client_id: {{keycloak_client_id}}
+  client_secret: {{keycloak_client_secret}}
+  scope:
+  credentials_placement: body
+  credentials_id: credentials
+  token_placement: header
+  token_header_prefix: Bearer
+  auto_fetch_token: true
+  auto_refresh_token: false
+}
+
+script:pre-request {
+  // No pre-request script needed. Use Bruno's built-in Auth tab for OAuth2 Password Grant
+}
+
 docs {
   # otel-motel GraphQL API Collection
     
@@ -13,52 +38,25 @@ docs {
     - **Development (No Auth)**: For local development without authentication
     - **User**: Authenticated as a regular user with `user` role
     - **Admin**: Authenticated as an admin with `admin` and `user` roles
-    
-    Pre-request scripts automatically obtain JWT tokens from Keycloak when auth_enabled is true.
-    
-    ## Collections
-    - Hotels: Query hotel information (public access)
-    - Rooms: Query room availability (public access)
-    - Bookings: Create and manage bookings (requires authentication)
-    - Customers: Query customer information (requires authentication)
-}
-
-script:pre-request {
-  const authEnabled = bru.getEnvVar("auth_enabled");
   
-  if (authEnabled === "true" || authEnabled === true) {
-    const tokenUrl = `${bru.getEnvVar("keycloak_url")}/realms/${bru.getEnvVar("keycloak_realm")}/protocol/openid-connect/token`;
-    const clientId = bru.getEnvVar("keycloak_client_id");
-    const clientSecret = bru.getEnvVar("keycloak_client_secret");
-    const username = bru.getEnvVar("username");
-    const password = bru.getEnvVar("password");
-    
-    // Check if we have a valid token
-    const currentToken = bru.getEnvVar("access_token");
-    
-    // For simplicity, always get a fresh token
-    // In production, you would check token expiry
-    const params = new URLSearchParams();
-    params.append('grant_type', 'password');
-    params.append('client_id', clientId);
-    params.append('client_secret', clientSecret);
-    params.append('username', username);
-    params.append('password', password);
-    
-    const res = await fetch(tokenUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: params.toString()
-    });
-    
-    if (res.status === 200) {
-      const data = await res.json();
-      bru.setEnvVar("access_token", data.access_token);
-      console.log("Token obtained successfully");
-    } else {
-      console.error("Failed to obtain token:", res.status);
-    }
-  }
+    **Bruno Built-in OAuth2 Authentication (Keycloak Password Grant):**
+    - Go to the Auth tab for your environment or request.
+    - Select **OAuth2** as the authentication type.
+    - Set the following fields (using your environment variables):
+  
+      | Field              | Value                                                        |
+      |--------------------|--------------------------------------------------------------|
+      | Grant Type         | password                                                     |
+      | Access Token URL   | `{{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/token` |
+      | Client ID          | `{{keycloak_client_id}}`                                     |
+      | Client Secret      | `{{keycloak_client_secret}}`                                 |
+      | Username           | `{{username}}`                                               |
+      | Password           | `{{password}}`                                               |
+      | Scope              | *(leave blank or set as needed)*                             |
+      | Audience           | *(optional, as needed)*                                      |
+  
+    - Make sure your environment variables are set in Bruno.
+    - Bruno will automatically fetch and inject the access token for your requests.
+    - See: https://docs.usebruno.com/auth/oauth2-2.0/client-credentials
+    - No pre-request script is needed—Bruno handles tokens automatically.
 }
