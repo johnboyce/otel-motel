@@ -48,6 +48,9 @@ nb-configuration.xml
 # Docker volumes
 .docker/
 
+# LocalStack data and cache
+.localstack/
+
 # Logs
 *.log
 
