@@ -1,0 +1,33 @@
+{
+  "index_patterns": ["otel-motel-traces-*"],
+  "priority": 500,
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "index.refresh_interval": "5s"
+    },
+    "mappings": {
+      "properties": {
+        "@timestamp": { "type": "date" },
+        "trace": {
+          "properties": {
+            "id": { "type": "keyword" }
+          }
+        },
+        "span": {
+          "properties": {
+            "id": { "type": "keyword" },
+            "name": { "type": "keyword" }
+          }
+        },
+        "service": {
+          "properties": {
+            "name": { "type": "keyword" }
+          }
+        },
+        "duration": { "type": "long" }
+      }
+    }
+  }
+}
