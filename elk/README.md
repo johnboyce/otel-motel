@@ -7,7 +7,16 @@ This directory contains all configuration files and scripts for Elasticsearch an
 ```
 elk/
 ├── elasticsearch/
-│   └── setup-indices.sh      # Index template and ILM policy setup
+│   ├── setup-indices.sh      # Index template and ILM policy setup
+│   └── templates/            # Externalized JSON templates
+│       ├── index-templates/  # Index template definitions
+│       │   ├── otel-motel-logs-template.json
+│       │   ├── otel-motel-traces-template.json
+│       │   └── otel-motel-metrics-template.json
+│       ├── ilm-policies/     # Index lifecycle management policies
+│       │   └── otel-motel-logs-policy.json
+│       └── ingest-pipelines/ # Data processing pipelines
+│           └── otel-motel-logs-ecs.json
 └── README.md                 # This file
 ```
 
@@ -113,6 +122,7 @@ Creates index templates with:
 - ECS-compliant field mappings
 - Optimized shard configuration
 - Index lifecycle policies for log rotation
+- Ingest pipelines for data transformation
 
 **Run manually**:
 ```bash
@@ -121,6 +131,23 @@ Creates index templates with:
 
 **Environment Variables**:
 - `ELASTICSEARCH_HOST` - Elasticsearch URL (default: http://localhost:9200)
+
+### Template Files
+
+All Elasticsearch configurations are now externalized as JSON files in the `templates/` directory:
+
+#### Index Templates (`templates/index-templates/`)
+- **otel-motel-logs-template.json** - Defines the schema for application logs with full ECS field mappings
+- **otel-motel-traces-template.json** - Defines the schema for distributed traces
+- **otel-motel-metrics-template.json** - Defines the schema for application metrics
+
+#### ILM Policies (`templates/ilm-policies/`)
+- **otel-motel-logs-policy.json** - Lifecycle policy for automatic log rotation and deletion (7 day rollover, 30 day retention)
+
+#### Ingest Pipelines (`templates/ingest-pipelines/`)
+- **otel-motel-logs-ecs.json** - Pipeline that remaps OpenTelemetry fields to ECS standard format and removes redundant fields
+
+These files can be edited directly to customize Elasticsearch behavior without modifying the setup script.
 
 ## OpenTelemetry Integration
 
