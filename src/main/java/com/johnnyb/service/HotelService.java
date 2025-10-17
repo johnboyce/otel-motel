@@ -7,17 +7,15 @@ import org.jboss.logging.Logger;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
-public class HotelService {
+public class HotelService implements IHotelService {
 
     private static final Logger LOG = Logger.getLogger(HotelService.class);
     private static final String TABLE_NAME = "hotels";
@@ -32,6 +30,7 @@ public class HotelService {
         hotelTable = dynamoDb.table(TABLE_NAME, Hotel.HOTEL_TABLE_SCHEMA);
     }
 
+    @Override
     public Hotel save(Hotel hotel) {
         LOG.infof("Saving hotel: %s", hotel.getId());
         // Prevent DynamoDB empty set error
@@ -42,10 +41,11 @@ public class HotelService {
         return hotel;
     }
 
+    @Override
     public Optional<Hotel> findById(String id) {
         LOG.infof("Finding hotel by ID: %s", id);
         try {
-            Hotel hotel = hotelTable.getItem(Key.builder().partitionValue(id).build());
+            var hotel = hotelTable.getItem(Key.builder().partitionValue(id).build());
             return Optional.ofNullable(hotel);
         } catch (ResourceNotFoundException e) {
             LOG.warnf("Hotel not found: %s", id);
@@ -53,11 +53,12 @@ public class HotelService {
         }
     }
 
+    @Override
     public List<Hotel> findAll() {
         LOG.info("Finding all hotels");
-        List<Hotel> hotels = new ArrayList<>();
+        var hotels = new ArrayList<Hotel>();
         try {
-            PageIterable<Hotel> pages = hotelTable.scan();
+            var pages = hotelTable.scan();
             pages.items().forEach(hotels::add);
         } catch (ResourceNotFoundException e) {
             LOG.warn("Hotel table not found");
@@ -65,25 +66,29 @@ public class HotelService {
         return hotels;
     }
 
+    @Override
     public List<Hotel> findByCity(String city) {
         LOG.infof("Finding hotels by city: %s", city);
         return findAll().stream()
                 .filter(h -> city.equals(h.getCity()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
+    @Override
     public List<Hotel> findByCountry(String country) {
         LOG.infof("Finding hotels by country: %s", country);
         return findAll().stream()
                 .filter(h -> country.equals(h.getCountry()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
+    @Override
     public void delete(String id) {
         LOG.infof("Deleting hotel: %s", id);
         hotelTable.deleteItem(Key.builder().partitionValue(id).build());
     }
 
+    @Override
     public long count() {
         return findAll().size();
     }

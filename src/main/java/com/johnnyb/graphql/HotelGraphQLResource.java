@@ -4,10 +4,10 @@ import com.johnnyb.model.Hotel;
 import com.johnnyb.model.Room;
 import com.johnnyb.model.Booking;
 import com.johnnyb.model.Customer;
-import com.johnnyb.service.HotelService;
-import com.johnnyb.service.RoomService;
-import com.johnnyb.service.BookingService;
-import com.johnnyb.service.CustomerService;
+import com.johnnyb.service.IHotelService;
+import com.johnnyb.service.IRoomService;
+import com.johnnyb.service.IBookingService;
+import com.johnnyb.service.ICustomerService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @GraphQLApi
 @ApplicationScoped
@@ -31,16 +30,16 @@ public class HotelGraphQLResource {
     private static final Logger LOG = Logger.getLogger(HotelGraphQLResource.class);
 
     @Inject
-    HotelService hotelService;
+    IHotelService hotelService;
 
     @Inject
-    RoomService roomService;
+    IRoomService roomService;
 
     @Inject
-    BookingService bookingService;
+    IBookingService bookingService;
 
     @Inject
-    CustomerService customerService;
+    ICustomerService customerService;
 
     @Query("hotels")
     @Description("Get all hotels")
@@ -97,17 +96,17 @@ public class HotelGraphQLResource {
         LOG.infof("Checking availability for hotel %s from %s to %s", hotelId, checkIn, checkOut);
         
         // Find all rooms for the hotel
-        List<Room> allRooms = roomService.findByHotelId(hotelId);
+        var allRooms = roomService.findByHotelId(hotelId);
         
         // Filter out rooms that have bookings overlapping with the requested dates
         return allRooms.stream()
             .filter(room -> {
-                List<Booking> overlappingBookings = bookingService.findOverlappingBookings(
+                var overlappingBookings = bookingService.findOverlappingBookings(
                     room.getId(), checkIn, checkOut
                 );
                 return overlappingBookings.isEmpty();
             })
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Query("booking")
@@ -157,14 +156,14 @@ public class HotelGraphQLResource {
                                  Integer numberOfGuests, String specialRequests) {
         LOG.infof("Creating booking for room %s, customer %s", roomId, customerId);
         
-        Room room = roomService.findById(roomId)
+        var room = roomService.findById(roomId)
             .orElseThrow(() -> new IllegalArgumentException("Room not found"));
         
-        Customer customer = customerService.findById(customerId)
+        var customer = customerService.findById(customerId)
             .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
         
         // Check if room is available
-        List<Booking> overlappingBookings = bookingService.findOverlappingBookings(
+        var overlappingBookings = bookingService.findOverlappingBookings(
             roomId, checkInDate, checkOutDate
         );
         
@@ -173,10 +172,10 @@ public class HotelGraphQLResource {
         }
         
         // Calculate total price
-        long nights = checkOutDate.toEpochDay() - checkInDate.toEpochDay();
-        BigDecimal totalPrice = room.getPricePerNight().multiply(BigDecimal.valueOf(nights));
+        var nights = checkOutDate.toEpochDay() - checkInDate.toEpochDay();
+        var totalPrice = room.getPricePerNight().multiply(BigDecimal.valueOf(nights));
         
-        Booking booking = Booking.builder()
+        var booking = Booking.builder()
             .id(UUID.randomUUID().toString())
             .roomId(roomId)
             .customerId(customerId)
@@ -200,7 +199,7 @@ public class HotelGraphQLResource {
     public Booking cancelBooking(String bookingId) {
         LOG.infof("Cancelling booking with ID: %s", bookingId);
         
-        Booking booking = bookingService.findById(bookingId)
+        var booking = bookingService.findById(bookingId)
             .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
         
         booking.setStatus(Booking.BookingStatus.CANCELLED);

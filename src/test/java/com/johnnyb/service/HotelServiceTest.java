@@ -16,12 +16,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class HotelServiceTest {
 
     @Inject
-    HotelService hotelService;
+    IHotelService hotelService;
 
     @Test
     void testSaveAndFindById() {
-        String id = UUID.randomUUID().toString();
-        Hotel hotel = Hotel.builder()
+        var id = UUID.randomUUID().toString();
+        var hotel = Hotel.builder()
             .id(id)
             .name("Test Hotel")
             .address("123 Test Ave")
@@ -34,7 +34,7 @@ class HotelServiceTest {
 
         hotelService.save(hotel);
 
-        Optional<Hotel> found = hotelService.findById(id);
+        var found = hotelService.findById(id);
         assertTrue(found.isPresent());
         assertEquals("Test Hotel", found.get().getName());
         assertEquals("Test City", found.get().getCity());
@@ -46,9 +46,9 @@ class HotelServiceTest {
 
     @Test
     void testFindByCity() {
-        String id = UUID.randomUUID().toString();
-        String uniqueCity = "UniqueCity" + id.substring(0, 8);
-        Hotel hotel = Hotel.builder()
+        var id = UUID.randomUUID().toString();
+        var uniqueCity = "UniqueCity" + id.substring(0, 8);
+        var hotel = Hotel.builder()
             .id(id)
             .name("City Test Hotel")
             .address("456 Test Blvd")
@@ -61,7 +61,7 @@ class HotelServiceTest {
 
         hotelService.save(hotel);
 
-        List<Hotel> found = hotelService.findByCity(uniqueCity);
+        var found = hotelService.findByCity(uniqueCity);
         assertNotNull(found);
         assertFalse(found.isEmpty());
         assertTrue(found.stream().anyMatch(h -> h.getName().equals("City Test Hotel")));
@@ -72,7 +72,7 @@ class HotelServiceTest {
 
     @Test
     void testFindByCountry() {
-        List<Hotel> hotels = hotelService.findByCountry("USA");
+        var hotels = hotelService.findByCountry("USA");
         assertNotNull(hotels);
         // Note: This will include sample data from initialization
         assertFalse(hotels.isEmpty());
@@ -80,7 +80,7 @@ class HotelServiceTest {
 
     @Test
     void testFindAll() {
-        List<Hotel> hotels = hotelService.findAll();
+        var hotels = hotelService.findAll();
         assertNotNull(hotels);
         // Note: This will include sample data from initialization
         assertFalse(hotels.isEmpty());
@@ -88,8 +88,8 @@ class HotelServiceTest {
 
     @Test
     void testDelete() {
-        String id = UUID.randomUUID().toString();
-        Hotel hotel = Hotel.builder()
+        var id = UUID.randomUUID().toString();
+        var hotel = Hotel.builder()
             .id(id)
             .name("Delete Test Hotel")
             .address("789 Delete Rd")

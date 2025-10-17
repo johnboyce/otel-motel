@@ -16,12 +16,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class CustomerServiceTest {
 
     @Inject
-    CustomerService customerService;
+    ICustomerService customerService;
 
     @Test
     void testSaveAndFindById() {
-        String id = UUID.randomUUID().toString();
-        Customer customer = Customer.builder()
+        var id = UUID.randomUUID().toString();
+        var customer = Customer.builder()
             .id(id)
             .firstName("Test")
             .lastName("User")
@@ -36,7 +36,7 @@ class CustomerServiceTest {
 
         customerService.save(customer);
 
-        Optional<Customer> found = customerService.findById(id);
+        var found = customerService.findById(id);
         assertTrue(found.isPresent());
         assertEquals("Test", found.get().getFirstName());
         assertEquals("User", found.get().getLastName());
@@ -48,9 +48,9 @@ class CustomerServiceTest {
 
     @Test
     void testFindByEmail() {
-        String id = UUID.randomUUID().toString();
-        String email = "test.email." + id + "@example.com";
-        Customer customer = Customer.builder()
+        var id = UUID.randomUUID().toString();
+        var email = "test.email." + id + "@example.com";
+        var customer = Customer.builder()
             .id(id)
             .firstName("Email")
             .lastName("Test")
@@ -65,7 +65,7 @@ class CustomerServiceTest {
 
         customerService.save(customer);
 
-        Optional<Customer> found = customerService.findByEmail(email);
+        var found = customerService.findByEmail(email);
         assertTrue(found.isPresent());
         assertEquals("Email", found.get().getFirstName());
         assertEquals(email, found.get().getEmail());
@@ -76,15 +76,15 @@ class CustomerServiceTest {
 
     @Test
     void testFindAll() {
-        List<Customer> customers = customerService.findAll();
+        var customers = customerService.findAll();
         assertNotNull(customers);
         // Note: This will include sample data from initialization
     }
 
     @Test
     void testDelete() {
-        String id = UUID.randomUUID().toString();
-        Customer customer = Customer.builder()
+        var id = UUID.randomUUID().toString();
+        var customer = Customer.builder()
             .id(id)
             .firstName("Delete")
             .lastName("Test")

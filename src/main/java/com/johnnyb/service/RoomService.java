@@ -7,17 +7,15 @@ import org.jboss.logging.Logger;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
-public class RoomService {
+public class RoomService implements IRoomService {
 
     private static final Logger LOG = Logger.getLogger(RoomService.class);
     private static final String TABLE_NAME = "rooms";
@@ -32,6 +30,7 @@ public class RoomService {
         roomTable = dynamoDb.table(TABLE_NAME, Room.ROOM_TABLE_SCHEMA);
     }
 
+    @Override
     public Room save(Room room) {
         LOG.infof("Saving room: %s", room.getId());
         // Prevent DynamoDB empty set error
@@ -42,10 +41,11 @@ public class RoomService {
         return room;
     }
 
+    @Override
     public Optional<Room> findById(String id) {
         LOG.infof("Finding room by ID: %s", id);
         try {
-            Room room = roomTable.getItem(Key.builder().partitionValue(id).build());
+            var room = roomTable.getItem(Key.builder().partitionValue(id).build());
             return Optional.ofNullable(room);
         } catch (ResourceNotFoundException e) {
             LOG.warnf("Room not found: %s", id);
@@ -53,11 +53,12 @@ public class RoomService {
         }
     }
 
+    @Override
     public List<Room> findAll() {
         LOG.info("Finding all rooms");
-        List<Room> rooms = new ArrayList<>();
+        var rooms = new ArrayList<Room>();
         try {
-            PageIterable<Room> pages = roomTable.scan();
+            var pages = roomTable.scan();
             pages.items().forEach(rooms::add);
         } catch (ResourceNotFoundException e) {
             LOG.warn("Room table not found");
@@ -65,18 +66,21 @@ public class RoomService {
         return rooms;
     }
 
+    @Override
     public List<Room> findByHotelId(String hotelId) {
         LOG.infof("Finding rooms by hotel ID: %s", hotelId);
         return findAll().stream()
                 .filter(r -> hotelId.equals(r.getHotelId()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
+    @Override
     public void delete(String id) {
         LOG.infof("Deleting room: %s", id);
         roomTable.deleteItem(Key.builder().partitionValue(id).build());
     }
 
+    @Override
     public long count() {
         return findAll().size();
     }

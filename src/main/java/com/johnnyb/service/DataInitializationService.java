@@ -18,23 +18,24 @@ import java.util.Random;
 import java.util.UUID;
 
 @ApplicationScoped
-public class DataInitializationService {
+public class DataInitializationService implements IDataInitializationService {
 
     private static final Logger LOG = Logger.getLogger(DataInitializationService.class);
     private static final Random RANDOM = new Random();
 
     @Inject
-    HotelService hotelService;
+    IHotelService hotelService;
 
     @Inject
-    RoomService roomService;
+    IRoomService roomService;
 
     @Inject
-    CustomerService customerService;
+    ICustomerService customerService;
 
     @Inject
-    BookingService bookingService;
+    IBookingService bookingService;
 
+    @Override
     public void onStart(@Observes StartupEvent ev) {
         // Only initialize if database is empty
         if (hotelService.count() > 0) {
@@ -45,11 +46,11 @@ public class DataInitializationService {
         LOG.info("Initializing database with sample data...");
 
         // Create customers first
-        List<Customer> customers = createCustomers();
+        var customers = createCustomers();
         LOG.infof("Created %d customers", customers.size());
 
         // Create hotels with rooms
-        List<Hotel> hotels = createHotels();
+        var hotels = createHotels();
         LOG.infof("Created %d hotels", hotels.size());
 
         // Create bookings (targeting ~50% capacity for next 3 months)
@@ -58,7 +59,7 @@ public class DataInitializationService {
     }
 
     private List<Customer> createCustomers() {
-        List<Customer> customers = new ArrayList<>();
+        var customers = new ArrayList<Customer>();
 
         customers.add(Customer.builder()
             .id(UUID.randomUUID().toString())
@@ -198,7 +199,7 @@ public class DataInitializationService {
     }
 
     private List<Hotel> createHotels() {
-        List<Hotel> hotels = new ArrayList<>();
+        var hotels = new ArrayList<Hotel>();
 
         // Hotel 1: Luxury Resort
         Hotel hotel1 = Hotel.builder()
@@ -279,23 +280,23 @@ public class DataInitializationService {
     }
 
     private void createRoomsForHotel(Hotel hotel, int numberOfRooms) {
-        String[] roomTypes = {"Standard", "Deluxe", "Suite", "Executive Suite"};
-        BigDecimal[] basePrices = {
+        var roomTypes = new String[]{"Standard", "Deluxe", "Suite", "Executive Suite"};
+        var basePrices = new BigDecimal[]{
             new BigDecimal("120.00"),
             new BigDecimal("180.00"),
             new BigDecimal("250.00"),
             new BigDecimal("350.00")
         };
-        Integer[] capacities = {2, 2, 4, 4};
+        var capacities = new Integer[]{2, 2, 4, 4};
 
         for (int i = 1; i <= numberOfRooms; i++) {
-            int floor = (i - 1) / 10 + 1;
-            int roomNum = ((i - 1) % 10) + 1;
-            String roomNumber = String.format("%d%02d", floor, roomNum);
+            var floor = (i - 1) / 10 + 1;
+            var roomNum = ((i - 1) % 10) + 1;
+            var roomNumber = String.format("%d%02d", floor, roomNum);
             
-            int typeIndex = i % roomTypes.length;
+            var typeIndex = i % roomTypes.length;
             
-            Room room = Room.builder()
+            var room = Room.builder()
                 .id(UUID.randomUUID().toString())
                 .hotelId(hotel.getId())
                 .roomNumber(roomNumber)
@@ -310,46 +311,46 @@ public class DataInitializationService {
     }
 
     private void createBookings(List<Hotel> hotels, List<Customer> customers) {
-        LocalDate today = LocalDate.now();
-        LocalDate endDate = today.plusMonths(3);
+        var today = LocalDate.now();
+        var endDate = today.plusMonths(3);
         
-        int totalRooms = (int) hotels.stream()
+        var totalRooms = (int) hotels.stream()
             .mapToLong(hotel -> roomService.findByHotelId(hotel.getId()).size())
             .sum();
         
         // Target ~50% occupancy, so create bookings for about half the room-nights
-        int targetBookings = (int) (totalRooms * 45 * 0.5 / 7); // Assuming average 7-day stays
+        var targetBookings = (int) (totalRooms * 45 * 0.5 / 7); // Assuming average 7-day stays
         
         LOG.infof("Creating approximately %d bookings for %d total rooms", targetBookings, totalRooms);
         
-        int bookingsCreated = 0;
+        var bookingsCreated = 0;
         for (int i = 0; i < targetBookings; i++) {
             try {
                 // Random hotel and room
-                Hotel hotel = hotels.get(RANDOM.nextInt(hotels.size()));
-                List<Room> hotelRooms = roomService.findByHotelId(hotel.getId());
+                var hotel = hotels.get(RANDOM.nextInt(hotels.size()));
+                var hotelRooms = roomService.findByHotelId(hotel.getId());
                 if (hotelRooms.isEmpty()) continue;
                 
-                Room room = hotelRooms.get(RANDOM.nextInt(hotelRooms.size()));
+                var room = hotelRooms.get(RANDOM.nextInt(hotelRooms.size()));
                 
                 // Random customer
-                Customer customer = customers.get(RANDOM.nextInt(customers.size()));
+                var customer = customers.get(RANDOM.nextInt(customers.size()));
                 
                 // Random dates within next 3 months
-                long daysUntilEnd = endDate.toEpochDay() - today.toEpochDay();
-                int startOffset = RANDOM.nextInt((int) daysUntilEnd - 7);
-                LocalDate checkIn = today.plusDays(startOffset);
+                var daysUntilEnd = endDate.toEpochDay() - today.toEpochDay();
+                var startOffset = RANDOM.nextInt((int) daysUntilEnd - 7);
+                var checkIn = today.plusDays(startOffset);
                 
                 // Stay duration: 1-14 nights
-                int stayDuration = 1 + RANDOM.nextInt(14);
-                LocalDate checkOut = checkIn.plusDays(stayDuration);
+                var stayDuration = 1 + RANDOM.nextInt(14);
+                var checkOut = checkIn.plusDays(stayDuration);
                 
                 if (checkOut.isAfter(endDate)) {
                     checkOut = endDate;
                 }
                 
                 // Check if room is available
-                List<Booking> overlappingBookings = bookingService.findOverlappingBookings(
+                var overlappingBookings = bookingService.findOverlappingBookings(
                     room.getId(), checkIn, checkOut
                 );
                 
@@ -358,18 +359,18 @@ public class DataInitializationService {
                 }
                 
                 // Calculate total price
-                long nights = checkOut.toEpochDay() - checkIn.toEpochDay();
-                BigDecimal totalPrice = room.getPricePerNight().multiply(BigDecimal.valueOf(nights));
+                var nights = checkOut.toEpochDay() - checkIn.toEpochDay();
+                var totalPrice = room.getPricePerNight().multiply(BigDecimal.valueOf(nights));
                 
                 // Random number of guests (1 to room capacity)
-                int numberOfGuests = 1 + RANDOM.nextInt(room.getCapacity());
+                var numberOfGuests = 1 + RANDOM.nextInt(room.getCapacity());
                 
                 // Random booking status (mostly confirmed)
-                Booking.BookingStatus status = RANDOM.nextDouble() < 0.9 
+                var status = RANDOM.nextDouble() < 0.9 
                     ? Booking.BookingStatus.CONFIRMED 
                     : Booking.BookingStatus.PENDING;
                 
-                String[] specialRequests = {
+                var specialRequests = new String[]{
                     null,
                     "Late check-in please",
                     "High floor preferred",
@@ -377,9 +378,9 @@ public class DataInitializationService {
                     "Extra towels needed",
                     "Quiet room please"
                 };
-                String specialRequest = specialRequests[RANDOM.nextInt(specialRequests.length)];
+                var specialRequest = specialRequests[RANDOM.nextInt(specialRequests.length)];
                 
-                Booking booking = Booking.builder()
+                var booking = Booking.builder()
                     .id(UUID.randomUUID().toString())
                     .roomId(room.getId())
                     .customerId(customer.getId())

@@ -7,7 +7,6 @@ import org.jboss.logging.Logger;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 
 import jakarta.annotation.PostConstruct;
@@ -16,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
-public class CustomerService {
+public class CustomerService implements ICustomerService {
 
     private static final Logger LOG = Logger.getLogger(CustomerService.class);
     private static final String TABLE_NAME = "customers";
@@ -31,6 +30,7 @@ public class CustomerService {
         customerTable = dynamoDb.table(TABLE_NAME, Customer.CUSTOMER_TABLE_SCHEMA);
     }
 
+    @Override
     public Customer save(Customer customer) {
         LOG.infof("Saving customer: %s", customer.getId());
         // Prevent DynamoDB empty set error
@@ -41,10 +41,11 @@ public class CustomerService {
         return customer;
     }
 
+    @Override
     public Optional<Customer> findById(String id) {
         LOG.infof("Finding customer by ID: %s", id);
         try {
-            Customer customer = customerTable.getItem(Key.builder().partitionValue(id).build());
+            var customer = customerTable.getItem(Key.builder().partitionValue(id).build());
             return Optional.ofNullable(customer);
         } catch (ResourceNotFoundException e) {
             LOG.warnf("Customer not found: %s", id);
@@ -52,19 +53,21 @@ public class CustomerService {
         }
     }
 
+    @Override
     public Optional<Customer> findByEmail(String email) {
         LOG.infof("Finding customer by email: %s", email);
-        List<Customer> customers = findAll();
+        var customers = findAll();
         return customers.stream()
                 .filter(c -> email.equals(c.getEmail()))
                 .findFirst();
     }
 
+    @Override
     public List<Customer> findAll() {
         LOG.info("Finding all customers");
-        List<Customer> customers = new ArrayList<>();
+        var customers = new ArrayList<Customer>();
         try {
-            PageIterable<Customer> pages = customerTable.scan();
+            var pages = customerTable.scan();
             pages.items().forEach(customers::add);
         } catch (ResourceNotFoundException e) {
             LOG.warn("Customer table not found");
@@ -72,11 +75,13 @@ public class CustomerService {
         return customers;
     }
 
+    @Override
     public void delete(String id) {
         LOG.infof("Deleting customer: %s", id);
         customerTable.deleteItem(Key.builder().partitionValue(id).build());
     }
 
+    @Override
     public long count() {
         return findAll().size();
     }
