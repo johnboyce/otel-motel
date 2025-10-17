@@ -7,7 +7,6 @@ import org.jboss.logging.Logger;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 
 import jakarta.annotation.PostConstruct;
@@ -15,10 +14,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
-public class BookingService {
+public class BookingService implements IBookingService {
 
     private static final Logger LOG = Logger.getLogger(BookingService.class);
     private static final String TABLE_NAME = "bookings";
@@ -33,16 +31,18 @@ public class BookingService {
         bookingTable = dynamoDb.table(TABLE_NAME, Booking.BOOKING_TABLE_SCHEMA);
     }
 
+    @Override
     public Booking save(Booking booking) {
         LOG.infof("Saving booking: %s", booking.getId());
         bookingTable.putItem(booking);
         return booking;
     }
 
+    @Override
     public Optional<Booking> findById(String id) {
         LOG.infof("Finding booking by ID: %s", id);
         try {
-            Booking booking = bookingTable.getItem(Key.builder().partitionValue(id).build());
+            var booking = bookingTable.getItem(Key.builder().partitionValue(id).build());
             return Optional.ofNullable(booking);
         } catch (ResourceNotFoundException e) {
             LOG.warnf("Booking not found: %s", id);
@@ -50,11 +50,12 @@ public class BookingService {
         }
     }
 
+    @Override
     public List<Booking> findAll() {
         LOG.info("Finding all bookings");
-        List<Booking> bookings = new ArrayList<>();
+        var bookings = new ArrayList<Booking>();
         try {
-            PageIterable<Booking> pages = bookingTable.scan();
+            var pages = bookingTable.scan();
             pages.items().forEach(bookings::add);
         } catch (ResourceNotFoundException e) {
             LOG.warn("Booking table not found");
@@ -62,43 +63,49 @@ public class BookingService {
         return bookings;
     }
 
+    @Override
     public List<Booking> findByCustomerId(String customerId) {
         LOG.infof("Finding bookings by customer ID: %s", customerId);
         return findAll().stream()
                 .filter(b -> customerId.equals(b.getCustomerId()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
+    @Override
     public List<Booking> findByRoomId(String roomId) {
         LOG.infof("Finding bookings by room ID: %s", roomId);
         return findAll().stream()
                 .filter(b -> roomId.equals(b.getRoomId()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
+    @Override
     public List<Booking> findUpcomingBookings() {
         LOG.info("Finding upcoming bookings");
-        LocalDate today = LocalDate.now();
+        var today = LocalDate.now();
         return findAll().stream()
                 .filter(b -> b.getCheckInDate() != null && !b.getCheckInDate().isBefore(today))
                 .filter(b -> b.getStatus() != Booking.BookingStatus.CANCELLED)
-                .collect(Collectors.toList());
+                .toList();
     }
 
+    @Override
     public List<Booking> findOverlappingBookings(String roomId, LocalDate checkIn, LocalDate checkOut) {
         LOG.infof("Finding overlapping bookings for room %s from %s to %s", roomId, checkIn, checkOut);
         return findByRoomId(roomId).stream()
                 .filter(b -> b.getStatus() != Booking.BookingStatus.CANCELLED)
                 .filter(b -> b.getCheckInDate() != null && b.getCheckOutDate() != null)
                 .filter(b -> b.getCheckInDate().isBefore(checkOut) && b.getCheckOutDate().isAfter(checkIn))
-                .collect(Collectors.toList());
+                .toList();
     }
 
+    @Override
     public void delete(String id) {
         LOG.infof("Deleting booking: %s", id);
         bookingTable.deleteItem(Key.builder().partitionValue(id).build());
     }
 
+    @Override
     public long count() {
         return findAll().size();
     }

@@ -17,17 +17,17 @@ import static org.junit.jupiter.api.Assertions.*;
 class BookingServiceTest {
 
     @Inject
-    BookingService bookingService;
+    IBookingService bookingService;
 
     @Test
     void testSaveAndFindById() {
-        String id = UUID.randomUUID().toString();
-        String roomId = UUID.randomUUID().toString();
-        String customerId = UUID.randomUUID().toString();
-        LocalDate checkIn = LocalDate.now().plusDays(10);
-        LocalDate checkOut = checkIn.plusDays(3);
+        var id = UUID.randomUUID().toString();
+        var roomId = UUID.randomUUID().toString();
+        var customerId = UUID.randomUUID().toString();
+        var checkIn = LocalDate.now().plusDays(10);
+        var checkOut = checkIn.plusDays(3);
 
-        Booking booking = Booking.builder()
+        var booking = Booking.builder()
             .id(id)
             .roomId(roomId)
             .customerId(customerId)
@@ -41,7 +41,7 @@ class BookingServiceTest {
 
         bookingService.save(booking);
 
-        Optional<Booking> found = bookingService.findById(id);
+        var found = bookingService.findById(id);
         assertTrue(found.isPresent());
         assertEquals(roomId, found.get().getRoomId());
         assertEquals(customerId, found.get().getCustomerId());
@@ -55,13 +55,13 @@ class BookingServiceTest {
 
     @Test
     void testFindByCustomerId() {
-        String customerId = UUID.randomUUID().toString();
-        String booking1Id = UUID.randomUUID().toString();
-        String booking2Id = UUID.randomUUID().toString();
-        String roomId = UUID.randomUUID().toString();
-        LocalDate checkIn = LocalDate.now().plusDays(15);
+        var customerId = UUID.randomUUID().toString();
+        var booking1Id = UUID.randomUUID().toString();
+        var booking2Id = UUID.randomUUID().toString();
+        var roomId = UUID.randomUUID().toString();
+        var checkIn = LocalDate.now().plusDays(15);
 
-        Booking booking1 = Booking.builder()
+        var booking1 = Booking.builder()
             .id(booking1Id)
             .roomId(roomId)
             .customerId(customerId)
@@ -72,7 +72,7 @@ class BookingServiceTest {
             .status(Booking.BookingStatus.CONFIRMED)
             .build();
 
-        Booking booking2 = Booking.builder()
+        var booking2 = Booking.builder()
             .id(booking2Id)
             .roomId(roomId)
             .customerId(customerId)
@@ -86,7 +86,7 @@ class BookingServiceTest {
         bookingService.save(booking1);
         bookingService.save(booking2);
 
-        List<Booking> found = bookingService.findByCustomerId(customerId);
+        var found = bookingService.findByCustomerId(customerId);
         assertNotNull(found);
         assertEquals(2, found.size());
         
@@ -97,12 +97,12 @@ class BookingServiceTest {
 
     @Test
     void testFindByRoomId() {
-        String roomId = UUID.randomUUID().toString();
-        String bookingId = UUID.randomUUID().toString();
-        String customerId = UUID.randomUUID().toString();
-        LocalDate checkIn = LocalDate.now().plusDays(20);
+        var roomId = UUID.randomUUID().toString();
+        var bookingId = UUID.randomUUID().toString();
+        var customerId = UUID.randomUUID().toString();
+        var checkIn = LocalDate.now().plusDays(20);
 
-        Booking booking = Booking.builder()
+        var booking = Booking.builder()
             .id(bookingId)
             .roomId(roomId)
             .customerId(customerId)
@@ -115,7 +115,7 @@ class BookingServiceTest {
 
         bookingService.save(booking);
 
-        List<Booking> found = bookingService.findByRoomId(roomId);
+        var found = bookingService.findByRoomId(roomId);
         assertNotNull(found);
         assertFalse(found.isEmpty());
         
@@ -125,20 +125,20 @@ class BookingServiceTest {
 
     @Test
     void testFindUpcomingBookings() {
-        List<Booking> upcoming = bookingService.findUpcomingBookings();
+        var upcoming = bookingService.findUpcomingBookings();
         assertNotNull(upcoming);
         // Note: This will include sample data from initialization
     }
 
     @Test
     void testFindOverlappingBookings() {
-        String roomId = UUID.randomUUID().toString();
-        String bookingId = UUID.randomUUID().toString();
-        String customerId = UUID.randomUUID().toString();
-        LocalDate checkIn = LocalDate.now().plusDays(30);
-        LocalDate checkOut = checkIn.plusDays(5);
+        var roomId = UUID.randomUUID().toString();
+        var bookingId = UUID.randomUUID().toString();
+        var customerId = UUID.randomUUID().toString();
+        var checkIn = LocalDate.now().plusDays(30);
+        var checkOut = checkIn.plusDays(5);
 
-        Booking booking = Booking.builder()
+        var booking = Booking.builder()
             .id(bookingId)
             .roomId(roomId)
             .customerId(customerId)
@@ -152,7 +152,7 @@ class BookingServiceTest {
         bookingService.save(booking);
 
         // Test overlapping dates
-        List<Booking> overlapping = bookingService.findOverlappingBookings(
+        var overlapping = bookingService.findOverlappingBookings(
             roomId, 
             checkIn.plusDays(2), 
             checkOut.plusDays(2)
@@ -162,7 +162,7 @@ class BookingServiceTest {
         assertEquals(bookingId, overlapping.get(0).getId());
 
         // Test non-overlapping dates
-        List<Booking> nonOverlapping = bookingService.findOverlappingBookings(
+        var nonOverlapping = bookingService.findOverlappingBookings(
             roomId, 
             checkOut.plusDays(1), 
             checkOut.plusDays(5)
@@ -175,12 +175,12 @@ class BookingServiceTest {
 
     @Test
     void testDelete() {
-        String id = UUID.randomUUID().toString();
-        String roomId = UUID.randomUUID().toString();
-        String customerId = UUID.randomUUID().toString();
-        LocalDate checkIn = LocalDate.now().plusDays(40);
+        var id = UUID.randomUUID().toString();
+        var roomId = UUID.randomUUID().toString();
+        var customerId = UUID.randomUUID().toString();
+        var checkIn = LocalDate.now().plusDays(40);
 
-        Booking booking = Booking.builder()
+        var booking = Booking.builder()
             .id(id)
             .roomId(roomId)
             .customerId(customerId)

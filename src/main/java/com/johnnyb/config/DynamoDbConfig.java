@@ -12,7 +12,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import java.net.URI;
 
 @ApplicationScoped
-public class DynamoDbConfig {
+public class DynamoDbConfig implements IDynamoDbConfig {
 
     @ConfigProperty(name = "quarkus.dynamodb.endpoint-override", defaultValue = "http://localhost:4566")
     String endpoint;
@@ -28,6 +28,7 @@ public class DynamoDbConfig {
 
     @Produces
     @ApplicationScoped
+    @Override
     public DynamoDbClient dynamoDbClient() {
         return DynamoDbClient.builder()
             .endpointOverride(URI.create(endpoint))
@@ -40,6 +41,7 @@ public class DynamoDbConfig {
 
     @Produces
     @ApplicationScoped
+    @Override
     public DynamoDbEnhancedClient dynamoDbEnhancedClient(DynamoDbClient dynamoDbClient) {
         return DynamoDbEnhancedClient.builder()
             .dynamoDbClient(dynamoDbClient)

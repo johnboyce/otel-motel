@@ -17,13 +17,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class RoomServiceTest {
 
     @Inject
-    RoomService roomService;
+    IRoomService roomService;
 
     @Test
     void testSaveAndFindById() {
-        String id = UUID.randomUUID().toString();
-        String hotelId = UUID.randomUUID().toString();
-        Room room = Room.builder()
+        var id = UUID.randomUUID().toString();
+        var hotelId = UUID.randomUUID().toString();
+        var room = Room.builder()
             .id(id)
             .hotelId(hotelId)
             .roomNumber("999")
@@ -36,7 +36,7 @@ class RoomServiceTest {
 
         roomService.save(room);
 
-        Optional<Room> found = roomService.findById(id);
+        var found = roomService.findById(id);
         assertTrue(found.isPresent());
         assertEquals("999", found.get().getRoomNumber());
         assertEquals("Test Suite", found.get().getRoomType());
@@ -49,11 +49,11 @@ class RoomServiceTest {
 
     @Test
     void testFindByHotelId() {
-        String hotelId = UUID.randomUUID().toString();
-        String room1Id = UUID.randomUUID().toString();
-        String room2Id = UUID.randomUUID().toString();
+        var hotelId = UUID.randomUUID().toString();
+        var room1Id = UUID.randomUUID().toString();
+        var room2Id = UUID.randomUUID().toString();
 
-        Room room1 = Room.builder()
+        var room1 = Room.builder()
             .id(room1Id)
             .hotelId(hotelId)
             .roomNumber("101")
@@ -64,7 +64,7 @@ class RoomServiceTest {
             .bookingIds(new ArrayList<>())
             .build();
 
-        Room room2 = Room.builder()
+        var room2 = Room.builder()
             .id(room2Id)
             .hotelId(hotelId)
             .roomNumber("102")
@@ -78,7 +78,7 @@ class RoomServiceTest {
         roomService.save(room1);
         roomService.save(room2);
 
-        List<Room> found = roomService.findByHotelId(hotelId);
+        var found = roomService.findByHotelId(hotelId);
         assertNotNull(found);
         assertEquals(2, found.size());
         
@@ -89,16 +89,16 @@ class RoomServiceTest {
 
     @Test
     void testFindAll() {
-        List<Room> rooms = roomService.findAll();
+        var rooms = roomService.findAll();
         assertNotNull(rooms);
         // Note: This will include sample data from initialization
     }
 
     @Test
     void testDelete() {
-        String id = UUID.randomUUID().toString();
-        String hotelId = UUID.randomUUID().toString();
-        Room room = Room.builder()
+        var id = UUID.randomUUID().toString();
+        var hotelId = UUID.randomUUID().toString();
+        var room = Room.builder()
             .id(id)
             .hotelId(hotelId)
             .roomNumber("888")
