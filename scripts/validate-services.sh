@@ -117,7 +117,9 @@ validate_postgres() {
     fi
     
     log_step "Checking for initialization errors..."
-    if docker logs otel-motel-postgres 2>&1 | grep -i "error\|fatal" | grep -v "previous connection" | tail -5; then
+    local errors=$(docker logs otel-motel-postgres 2>&1 | grep -i "error\|fatal" | grep -v "previous connection" | grep -v "does not exist at character" | tail -5)
+    if [ -n "$errors" ]; then
+        echo "$errors"
         log_warning "Found errors in PostgreSQL logs (see above)"
     else
         log_success "No critical errors in PostgreSQL logs"
@@ -171,7 +173,9 @@ validate_keycloak() {
     fi
     
     log_step "Checking for startup errors..."
-    if docker logs otel-motel-keycloak 2>&1 | grep -i "error\|fatal" | grep -v "WARN" | tail -5; then
+    local errors=$(docker logs otel-motel-keycloak 2>&1 | grep -i "error" | grep -v "WARN" | grep -v "does not exist at character" | tail -5)
+    if [ -n "$errors" ]; then
+        echo "$errors"
         log_warning "Found errors in Keycloak logs (see above)"
     else
         log_success "No critical errors in Keycloak logs"
@@ -292,6 +296,8 @@ validate_otel_collector() {
     
     log_step "Checking OTEL Collector health status..."
     local health_status=$(docker inspect --format='{{.State.Health.Status}}' "$service" 2>/dev/null || echo "no-health-check")
+    # Remove any newlines or whitespace
+    health_status=$(echo "$health_status" | tr -d '\n' | xargs)
     if [ "$health_status" == "no-health-check" ]; then
         log_info "OTEL Collector has no health check configured (using endpoint test instead)"
     elif [ "$health_status" == "healthy" ]; then
@@ -321,6 +327,8 @@ show_summary() {
                    "otel-motel-elasticsearch" "otel-motel-kibana" "otel-motel-collector"; do
         if check_service_running "$service"; then
             local health_status=$(docker inspect --format='{{.State.Health.Status}}' "$service" 2>/dev/null || echo "no-health-check")
+            # Remove any newlines or whitespace from health_status
+            health_status=$(echo "$health_status" | tr -d '\n' | xargs)
             if [ "$health_status" == "healthy" ]; then
                 echo -e "  ${GREEN}✓${NC} $service: Running and Healthy"
             elif [ "$health_status" == "no-health-check" ]; then

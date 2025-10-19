@@ -51,6 +51,8 @@ get_service_status() {
     fi
     
     local health_status=$(docker inspect --format='{{.State.Health.Status}}' "$service" 2>/dev/null || echo "no-health-check")
+    # Remove any newlines or whitespace
+    health_status=$(echo "$health_status" | tr -d '\n' | xargs)
     
     case "$health_status" in
         "healthy")
