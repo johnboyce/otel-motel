@@ -19,7 +19,7 @@ echo -e "${CYAN}=================================================${NC}"
 echo ""
 
 # Services to check (those with health checks defined in docker-compose.yml)
-SERVICES=("otel-motel-postgres" "otel-motel-dynamodb" "otel-motel-elasticsearch" "otel-motel-kibana" "otel-motel-otel-collector" "otel-motel-keycloak")
+SERVICES=("otel-motel-postgres" "otel-motel-dynamodb" "otel-motel-elasticsearch" "otel-motel-kibana" "otel-motel-collector" "otel-motel-keycloak")
 
 start_time=$(date +%s)
 

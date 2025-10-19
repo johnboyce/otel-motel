@@ -291,11 +291,13 @@ validate_otel_collector() {
     fi
     
     log_step "Checking OTEL Collector health status..."
-    if check_service_health "otel-motel-collector"; then
+    local health_status=$(docker inspect --format='{{.State.Health.Status}}' "$service" 2>/dev/null || echo "no-health-check")
+    if [ "$health_status" == "no-health-check" ]; then
+        log_info "OTEL Collector has no health check configured (using endpoint test instead)"
+    elif [ "$health_status" == "healthy" ]; then
         log_success "OTEL Collector is healthy"
     else
-        log_warning "OTEL Collector is not healthy yet"
-        show_service_logs "otel-motel-collector" 15
+        log_warning "OTEL Collector health status: $health_status"
     fi
     
     log_step "Testing OTEL Collector health endpoint..."
@@ -318,10 +320,13 @@ show_summary() {
     for service in "otel-motel-postgres" "otel-motel-keycloak" "otel-motel-dynamodb" \
                    "otel-motel-elasticsearch" "otel-motel-kibana" "otel-motel-collector"; do
         if check_service_running "$service"; then
-            if check_service_health "$service"; then
+            local health_status=$(docker inspect --format='{{.State.Health.Status}}' "$service" 2>/dev/null || echo "no-health-check")
+            if [ "$health_status" == "healthy" ]; then
                 echo -e "  ${GREEN}✓${NC} $service: Running and Healthy"
+            elif [ "$health_status" == "no-health-check" ]; then
+                echo -e "  ${GREEN}✓${NC} $service: Running (no health check)"
             else
-                echo -e "  ${YELLOW}⚠${NC} $service: Running but not healthy"
+                echo -e "  ${YELLOW}⚠${NC} $service: Running but not healthy ($health_status)"
             fi
         else
             echo -e "  ${RED}✗${NC} $service: Not running"
