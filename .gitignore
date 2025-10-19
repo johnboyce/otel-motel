@@ -60,3 +60,14 @@ temp/
 
 # Backups
 backups/
+
+# Frontend
+src/main/webui/node_modules/
+src/main/webui/build/
+src/main/webui/.env.local
+src/main/webui/.env.development.local
+src/main/webui/.env.test.local
+src/main/webui/.env.production.local
+src/main/webui/npm-debug.log*
+src/main/webui/yarn-debug.log*
+src/main/webui/yarn-error.log*
