@@ -259,6 +259,9 @@ docker compose logs -f postgres
 docker compose logs -f keycloak
 docker compose logs -f otel-collector
 
+# PostgreSQL initialization logs (verify init script ran)
+make postgres-init-logs
+
 # Using Makefile
 make docker-logs-elk
 make docker-logs-otel

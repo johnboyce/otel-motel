@@ -111,6 +111,17 @@ docker volume rm otel-motel_postgres_data
 
 ## Database Operations
 
+### Verify Initialization
+
+After starting the services, you can verify that the PostgreSQL initialization script ran successfully:
+
+```bash
+# View initialization logs (including the 'Starting Keycloak database initialization script' message)
+make postgres-init-logs
+```
+
+This command displays the PostgreSQL initialization logs, specifically looking for the initialization script output. This is useful to confirm that the database was set up correctly on first startup.
+
 ### Connect to PostgreSQL
 
 ```bash
@@ -178,6 +189,25 @@ docker exec otel-motel-postgres pg_isready -U keycloak
 ```
 
 ## Troubleshooting
+
+### Verifying Initialization
+
+**Problem**: Unsure if the database initialization script ran successfully
+
+**Solution**: Use the postgres-init-logs command to verify:
+```bash
+# Check initialization logs
+make postgres-init-logs
+```
+
+This will show the output from the initialization script, including:
+- "Starting Keycloak database initialization script" message
+- User and database verification
+- Privilege grants
+- Extension creation
+- Database information table
+
+**Note**: The initialization script only runs on the **first startup** when the database is created. On subsequent restarts, the database already exists and the init script is skipped.
 
 ### Connection Issues
 
