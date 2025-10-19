@@ -27,6 +27,8 @@ This command:
 - ✅ Creates DynamoDB tables
 - ✅ Verifies all services are ready
 
+**Note:** You need AWS CLI installed to create DynamoDB tables. The Makefile uses dummy credentials (test/test) which work with LocalStack.
+
 ### Option 2: Complete Application Setup
 ```bash
 make app-ready

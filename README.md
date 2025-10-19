@@ -23,12 +23,27 @@ A modern hotel booking GraphQL server built with Quarkus, featuring comprehensiv
 - **Java 17+** (configured for Java 17)
 - **Docker & Docker Compose**
 - **Maven 3.9+** (included via wrapper)
-- **AWS CLI** (for DynamoDB table creation)
+- **AWS CLI** (for DynamoDB table creation with LocalStack)
 - **Bruno** (optional, for API testing)
 
-For macOS M3:
+For macOS:
 ```bash
 brew install openjdk@17 docker docker-compose awscli
+```
+
+For Linux (Ubuntu/Debian):
+```bash
+# Install Java
+sudo apt update
+sudo apt install openjdk-17-jdk
+
+# Install Docker & Docker Compose (follow official Docker documentation)
+# https://docs.docker.com/engine/install/
+
+# Install AWS CLI
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
 ```
 
 ### One-Command Setup (Recommended)
