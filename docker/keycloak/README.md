@@ -61,6 +61,36 @@ This directory contains the Keycloak realm configuration for the otel-motel API 
 
 **Use for:** Testing admin operations (all bookings, administrative queries)
 
+## Client Scopes
+
+The realm includes standard OpenID Connect scopes that control what information is included in tokens:
+
+### profile
+Includes user profile information in tokens:
+- `preferred_username` - Username
+- `given_name` - First name
+- `family_name` - Last name
+- `name` - Full name
+
+### email
+Includes email information in tokens:
+- `email` - Email address
+- `email_verified` - Email verification status
+
+### address (optional)
+Includes address information in tokens when requested
+
+### phone (optional)
+Includes phone number information in tokens when requested
+
+### roles (default)
+Includes role information in tokens:
+- `realm_access.roles` - Realm-level roles
+- `resource_access.${client_id}.roles` - Client-specific roles
+
+### offline_access (optional)
+Allows requesting refresh tokens for offline access
+
 ## Roles
 
 ### Realm Roles
