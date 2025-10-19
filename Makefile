@@ -90,12 +90,15 @@ docker-up: ## Start all Docker services (DynamoDB, ELK, OTEL Collector)
 	@echo "$(GREEN)✓ Services started$(NC)"
 	@echo ""
 	@echo "$(CYAN)Services:$(NC)"
+	@echo "  PostgreSQL:     localhost:5432 (keycloak/keycloak)"
+	@echo "  Keycloak:       http://localhost:8180 (admin/admin)"
 	@echo "  DynamoDB:       localhost:4566"
 	@echo "  Elasticsearch:  $(ELASTICSEARCH_HOST)"
 	@echo "  Kibana:         $(KIBANA_HOST)"
 	@echo "  OTEL Collector: localhost:4318 (HTTP) / localhost:4317 (gRPC)"
 	@echo ""
 	@echo "$(YELLOW)Run 'make elk-setup' to initialize Elasticsearch indices$(NC)"
+	@echo "$(YELLOW)Run 'make postgres-init-logs' to verify PostgreSQL initialization$(NC)"
 
 docker-down: ## Stop all Docker services
 	@echo "$(YELLOW)Stopping Docker services...$(NC)"
@@ -198,6 +201,18 @@ postgres-console: ## Open PostgreSQL console for Keycloak database
 	@echo "$(CYAN)Database: keycloak, User: keycloak$(NC)"
 	@docker exec -it otel-motel-postgres psql -U keycloak -d keycloak
 
+postgres-init-logs: ## Show PostgreSQL initialization logs (including init script output)
+	@echo "$(CYAN)Displaying PostgreSQL initialization logs...$(NC)"
+	@echo "$(CYAN)Looking for 'Starting Keycloak database initialization script'...$(NC)"
+	@echo ""
+	@docker compose logs postgres | grep -A 50 "Starting Keycloak database initialization script" || \
+		(echo "$(YELLOW)Init script output not found. This could mean:$(NC)" && \
+		 echo "  1. Container hasn't been initialized yet (run 'make docker-up' first)" && \
+		 echo "  2. Database was already initialized (init script only runs on first startup)" && \
+		 echo "" && \
+		 echo "$(CYAN)Showing recent PostgreSQL logs instead:$(NC)" && \
+		 docker compose logs postgres --tail=30)
+
 postgres-backup: ## Backup Keycloak database
 	@echo "$(GREEN)Backing up Keycloak database...$(NC)"
 	@mkdir -p backups
@@ -264,10 +279,12 @@ infrastructure-up: ## Complete infrastructure setup with health checks and initi
 	@./scripts/wait-for-services.sh
 	@echo "$(CYAN)Step 3: Validating all services...$(NC)"
 	@./scripts/validate-services.sh
-	@echo "$(CYAN)Step 4: Initializing Elasticsearch indices...$(NC)"
+	@echo "$(CYAN)Step 4: Verifying PostgreSQL initialization...$(NC)"
+	@$(MAKE) postgres-init-logs
+	@echo "$(CYAN)Step 5: Initializing Elasticsearch indices...$(NC)"
 	@./elk/elasticsearch/setup-indices.sh
 	@echo ""
-	@echo "$(CYAN)Step 5: Creating DynamoDB tables...$(NC)"
+	@echo "$(CYAN)Step 6: Creating DynamoDB tables...$(NC)"
 	@AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 aws dynamodb create-table --table-name bookings --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>&1 | grep -v "ResourceInUseException" || echo "  bookings table created or already exists"
 	@AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 aws dynamodb create-table --table-name customers --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>&1 | grep -v "ResourceInUseException" || echo "  customers table created or already exists"
 	@AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 aws dynamodb create-table --table-name hotels --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>&1 | grep -v "ResourceInUseException" || echo "  hotels table created or already exists"
