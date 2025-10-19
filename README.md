@@ -23,27 +23,51 @@ A modern hotel booking GraphQL server built with Quarkus, featuring comprehensiv
 - **Java 17+** (configured for Java 17)
 - **Docker & Docker Compose**
 - **Maven 3.9+** (included via wrapper)
+- **AWS CLI** (for DynamoDB table creation)
 - **Bruno** (optional, for API testing)
 
 For macOS M3:
 ```bash
-brew install openjdk@17 docker docker-compose
+brew install openjdk@17 docker docker-compose awscli
 ```
 
-### 1. Start Infrastructure
+### One-Command Setup (Recommended)
 
 ```bash
-make docker-up    # Start PostgreSQL, DynamoDB, ELK stack, OTEL Collector, Keycloak
-make elk-setup    # Initialize Elasticsearch indices
+make app-ready    # Sets up infrastructure, builds, and runs the application
 ```
 
-### 2. Run Application
+This single command:
+- ✅ Starts all Docker services (PostgreSQL, Keycloak, DynamoDB, ELK, OTEL Collector)
+- ✅ Waits for all services to be healthy
+- ✅ Initializes Elasticsearch indices
+- ✅ Creates DynamoDB tables
+- ✅ Builds the application
+- ✅ Starts the application in development mode
+
+**Or, for infrastructure only:**
+```bash
+make infrastructure-up    # Complete infrastructure setup with health checks
+make dev                  # Run application separately
+```
+
+### Traditional Step-by-Step Setup
 
 ```bash
-make dev          # Start in development mode with hot reload
+# 1. Start all services
+make docker-up
+
+# 2. Initialize Elasticsearch
+make elk-setup
+
+# 3. Create DynamoDB tables
+make dynamodb-create-tables
+
+# 4. Run application
+make dev
 ```
 
-### 3. Access Services
+### Access Services
 
 | Service | URL | Description |
 |---------|-----|-------------|
@@ -58,6 +82,7 @@ make dev          # Start in development mode with hot reload
 
 ## 📚 Documentation
 
+- **[Infrastructure Setup Guide](INFRASTRUCTURE.md)** - **NEW!** Complete guide to infrastructure setup and Keycloak schema loading
 - **[Quick Start Guide](docs/QUICKSTART.md)** - Get running in 5 minutes!
 - **[Security Setup Guide](docs/SECURITY.md)** - OAuth2/OIDC authentication and authorization
 - **[Testing Guide](docs/TESTING.md)** - Comprehensive test scenarios
