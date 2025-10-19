@@ -121,6 +121,11 @@ docker-ps: ## Show status of Docker services
 
 docker-restart: docker-down docker-up ## Restart all Docker services
 
+validate-services: ## Validate all Docker services with detailed diagnostics
+	@echo "$(GREEN)Running service validation...$(NC)"
+	@./scripts/validate-services.sh
+	@echo "$(GREEN)✓ Validation completed$(NC)"
+
 ##@ ELK Stack
 
 elk-setup: ## Initialize Elasticsearch indices and mappings
@@ -257,27 +262,17 @@ infrastructure-up: ## Complete infrastructure setup with health checks and initi
 	@echo ""
 	@echo "$(CYAN)Step 2: Waiting for all services to be healthy...$(NC)"
 	@./scripts/wait-for-services.sh
-	@echo "$(CYAN)Step 3: Initializing Elasticsearch indices...$(NC)"
+	@echo "$(CYAN)Step 3: Validating all services...$(NC)"
+	@./scripts/validate-services.sh
+	@echo "$(CYAN)Step 4: Initializing Elasticsearch indices...$(NC)"
 	@./elk/elasticsearch/setup-indices.sh
 	@echo ""
-	@echo "$(CYAN)Step 4: Creating DynamoDB tables...$(NC)"
+	@echo "$(CYAN)Step 5: Creating DynamoDB tables...$(NC)"
 	@AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 aws dynamodb create-table --table-name bookings --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>&1 | grep -v "ResourceInUseException" || echo "  bookings table created or already exists"
 	@AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 aws dynamodb create-table --table-name customers --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>&1 | grep -v "ResourceInUseException" || echo "  customers table created or already exists"
 	@AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 aws dynamodb create-table --table-name hotels --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>&1 | grep -v "ResourceInUseException" || echo "  hotels table created or already exists"
 	@AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 aws dynamodb create-table --table-name rooms --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>&1 | grep -v "ResourceInUseException" || echo "  rooms table created or already exists"
 	@echo "$(GREEN)✓ DynamoDB tables created$(NC)"
-	@echo ""
-	@echo "$(CYAN)Step 5: Verifying service availability...$(NC)"
-	@echo "  Checking PostgreSQL..."
-	@docker exec otel-motel-postgres pg_isready -U keycloak > /dev/null && echo "$(GREEN)  ✓ PostgreSQL is ready$(NC)" || echo "$(RED)  ✗ PostgreSQL not ready$(NC)"
-	@echo "  Checking Keycloak..."
-	@curl -sf http://localhost:8180/health/ready > /dev/null && echo "$(GREEN)  ✓ Keycloak is ready$(NC)" || echo "$(YELLOW)  ⏳ Keycloak is starting (this is normal)$(NC)"
-	@echo "  Checking DynamoDB..."
-	@docker exec otel-motel-dynamodb awslocal dynamodb list-tables > /dev/null && echo "$(GREEN)  ✓ DynamoDB is ready$(NC)" || echo "$(RED)  ✗ DynamoDB not ready$(NC)"
-	@echo "  Checking Elasticsearch..."
-	@curl -sf $(ELASTICSEARCH_HOST)/_cluster/health > /dev/null && echo "$(GREEN)  ✓ Elasticsearch is ready$(NC)" || echo "$(RED)  ✗ Elasticsearch not ready$(NC)"
-	@echo "  Checking Kibana..."
-	@curl -sf $(KIBANA_HOST)/api/status > /dev/null && echo "$(GREEN)  ✓ Kibana is ready$(NC)" || echo "$(RED)  ✗ Kibana not ready$(NC)"
 	@echo ""
 	@echo "$(GREEN)═══════════════════════════════════════════════════════════════$(NC)"
 	@echo "$(GREEN)  ✓ Infrastructure Setup Complete!$(NC)"
