@@ -106,8 +106,11 @@ while [ "$all_healthy" = false ]; do
     echo -e "${CYAN}Check #$iteration (${elapsed}s elapsed):${NC}"
     
     for service in "${SERVICES[@]}"; do
+        # Temporarily disable exit on error for status check
+        set +e
         status=$(get_service_status "$service")
         status_result=$?
+        set -e
         
         if [ $status_result -eq 0 ]; then
             echo -e "  ${GREEN}✓${NC} $service: $status"

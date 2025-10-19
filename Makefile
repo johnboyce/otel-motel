@@ -99,6 +99,9 @@ docker-up: ## Start all Docker services (DynamoDB, ELK, OTEL Collector)
 	@echo ""
 	@echo "$(YELLOW)Run 'make elk-setup' to initialize Elasticsearch indices$(NC)"
 	@echo "$(YELLOW)Run 'make postgres-init-logs' to verify PostgreSQL initialization$(NC)"
+	@echo ""
+	@echo "$(CYAN)Note: PostgreSQL init scripts only run on first startup.$(NC)"
+	@echo "$(CYAN)      To re-initialize the database, run: make docker-down-volumes$(NC)"
 
 docker-down: ## Stop all Docker services
 	@echo "$(YELLOW)Stopping Docker services...$(NC)"
@@ -210,6 +213,9 @@ postgres-init-logs: ## Show PostgreSQL initialization logs (including init scrip
 		 echo "  1. Container hasn't been initialized yet (run 'make docker-up' first)" && \
 		 echo "  2. Database was already initialized (init script only runs on first startup)" && \
 		 echo "" && \
+		 echo "$(YELLOW)To re-run initialization, remove the postgres volume:$(NC)" && \
+		 echo "  make docker-down-volumes" && \
+		 echo "" && \
 		 echo "$(CYAN)Showing recent PostgreSQL logs instead:$(NC)" && \
 		 docker compose logs postgres --tail=30)
 
@@ -271,6 +277,9 @@ infrastructure-up: ## Complete infrastructure setup with health checks and initi
 	@echo "$(GREEN)═══════════════════════════════════════════════════════════════$(NC)"
 	@echo "$(GREEN)  Starting Complete Infrastructure Setup$(NC)"
 	@echo "$(GREEN)═══════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Note: PostgreSQL init scripts only run on first startup.$(NC)"
+	@echo "$(YELLOW)      To re-initialize, run: make docker-down-volumes$(NC)"
 	@echo ""
 	@echo "$(CYAN)Step 1: Starting Docker services...$(NC)"
 	$(DOCKER_COMPOSE) up -d
