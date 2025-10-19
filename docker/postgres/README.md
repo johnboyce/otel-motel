@@ -50,6 +50,45 @@ KC_DB_USERNAME: keycloak
 KC_DB_PASSWORD: keycloak
 ```
 
+### How Keycloak Schema is Loaded
+
+The Keycloak database schema is **automatically managed by Keycloak itself**. Here's how it works:
+
+1. **PostgreSQL Initialization** (first startup):
+   - PostgreSQL container starts with the `postgres:16-alpine` image
+   - The `init-keycloak-db.sql` script runs automatically via Docker's `/docker-entrypoint-initdb.d/` mechanism
+   - This creates the `keycloak` database and sets up the `keycloak` user with appropriate permissions
+   - The database is now empty but ready for Keycloak to use
+
+2. **Keycloak Schema Creation** (first startup):
+   - Keycloak container starts and connects to PostgreSQL using the configured credentials
+   - Keycloak detects that the database is empty (no schema tables exist)
+   - Keycloak automatically runs its internal migration scripts to create all necessary tables
+   - This includes creating tables for:
+     - Realms (realm, realm_attribute, etc.)
+     - Users (user_entity, user_attribute, credential, etc.)
+     - Roles (keycloak_role, role_attribute, etc.)
+     - Clients (client, client_attribute, etc.)
+     - Sessions (user_session, authentication_session, etc.)
+     - And many more (~100+ tables total)
+
+3. **Realm Import** (first startup):
+   - After schema creation, Keycloak imports the realm configuration from `/opt/keycloak/data/import/otel-motel-realm.json`
+   - This is triggered by the `--import-realm` flag in the Keycloak startup command
+   - The realm import creates the pre-configured users, roles, and client settings
+
+4. **Subsequent Startups**:
+   - Keycloak detects that the schema already exists
+   - It checks the schema version and runs any necessary migrations for updates
+   - The data persists in the `postgres_data` Docker volume
+
+**Key Points:**
+- ✅ You don't need to manually create Keycloak tables
+- ✅ Keycloak handles all schema creation and migrations automatically
+- ✅ The `init-keycloak-db.sql` script only initializes the database, not the schema
+- ✅ Schema is version-controlled and managed by Keycloak's migration system
+- ✅ Data persists across container restarts via Docker volumes
+
 ## Data Persistence
 
 PostgreSQL data is persisted in a Docker volume named `postgres_data`. This ensures that:

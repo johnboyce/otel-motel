@@ -1,5 +1,6 @@
 .PHONY: help build clean test run dev docker-up docker-down docker-logs \
-        elk-setup elk-health schema-export bruno-generate docs all
+        elk-setup elk-health schema-export bruno-generate docs all \
+        infrastructure-up app-ready
 
 # Default target
 .DEFAULT_GOAL := help
@@ -246,6 +247,74 @@ setup: docker-up elk-setup ## Complete setup (Docker + ELK initialization)
 	@echo "  3. Open Kibana: $(KIBANA_HOST)"
 	@echo ""
 
+infrastructure-up: ## Complete infrastructure setup with health checks and initialization
+	@echo "$(GREEN)═══════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(GREEN)  Starting Complete Infrastructure Setup$(NC)"
+	@echo "$(GREEN)═══════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@echo "$(CYAN)Step 1: Starting Docker services...$(NC)"
+	$(DOCKER_COMPOSE) up -d
+	@echo ""
+	@echo "$(CYAN)Step 2: Waiting for all services to be healthy...$(NC)"
+	@./scripts/wait-for-services.sh
+	@echo "$(CYAN)Step 3: Initializing Elasticsearch indices...$(NC)"
+	@./elk/elasticsearch/setup-indices.sh
+	@echo ""
+	@echo "$(CYAN)Step 4: Creating DynamoDB tables...$(NC)"
+	@AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 aws dynamodb create-table --table-name bookings --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>&1 | grep -v "ResourceInUseException" || echo "  bookings table created or already exists"
+	@AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 aws dynamodb create-table --table-name customers --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>&1 | grep -v "ResourceInUseException" || echo "  customers table created or already exists"
+	@AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 aws dynamodb create-table --table-name hotels --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>&1 | grep -v "ResourceInUseException" || echo "  hotels table created or already exists"
+	@AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 aws dynamodb create-table --table-name rooms --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>&1 | grep -v "ResourceInUseException" || echo "  rooms table created or already exists"
+	@echo "$(GREEN)✓ DynamoDB tables created$(NC)"
+	@echo ""
+	@echo "$(CYAN)Step 5: Verifying service availability...$(NC)"
+	@echo "  Checking PostgreSQL..."
+	@docker exec otel-motel-postgres pg_isready -U keycloak > /dev/null && echo "$(GREEN)  ✓ PostgreSQL is ready$(NC)" || echo "$(RED)  ✗ PostgreSQL not ready$(NC)"
+	@echo "  Checking Keycloak..."
+	@curl -sf http://localhost:8180/health/ready > /dev/null && echo "$(GREEN)  ✓ Keycloak is ready$(NC)" || echo "$(YELLOW)  ⏳ Keycloak is starting (this is normal)$(NC)"
+	@echo "  Checking DynamoDB..."
+	@docker exec otel-motel-dynamodb awslocal dynamodb list-tables > /dev/null && echo "$(GREEN)  ✓ DynamoDB is ready$(NC)" || echo "$(RED)  ✗ DynamoDB not ready$(NC)"
+	@echo "  Checking Elasticsearch..."
+	@curl -sf $(ELASTICSEARCH_HOST)/_cluster/health > /dev/null && echo "$(GREEN)  ✓ Elasticsearch is ready$(NC)" || echo "$(RED)  ✗ Elasticsearch not ready$(NC)"
+	@echo "  Checking Kibana..."
+	@curl -sf $(KIBANA_HOST)/api/status > /dev/null && echo "$(GREEN)  ✓ Kibana is ready$(NC)" || echo "$(RED)  ✗ Kibana not ready$(NC)"
+	@echo ""
+	@echo "$(GREEN)═══════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(GREEN)  ✓ Infrastructure Setup Complete!$(NC)"
+	@echo "$(GREEN)═══════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@echo "$(CYAN)Services Available:$(NC)"
+	@echo "  PostgreSQL:     localhost:5432 (keycloak/keycloak)"
+	@echo "  Keycloak:       http://localhost:8180 (admin/admin)"
+	@echo "  DynamoDB:       localhost:4566"
+	@echo "  Elasticsearch:  $(ELASTICSEARCH_HOST)"
+	@echo "  Kibana:         $(KIBANA_HOST)"
+	@echo "  OTEL Collector: localhost:4318 (HTTP) / localhost:4317 (gRPC)"
+	@echo ""
+	@echo "$(CYAN)Next step: Build and run the application with 'make app-ready'$(NC)"
+	@echo ""
+
+app-ready: infrastructure-up build ## Complete workflow: infrastructure + build + run application
+	@echo ""
+	@echo "$(GREEN)═══════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(GREEN)  Starting Application$(NC)"
+	@echo "$(GREEN)═══════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@echo "$(CYAN)The application will start in development mode...$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Note: The application will run in the foreground.$(NC)"
+	@echo "$(YELLOW)Press Ctrl+C to stop the application.$(NC)"
+	@echo ""
+	@echo "$(CYAN)Application URLs (once started):$(NC)"
+	@echo "  GraphQL UI:     http://localhost:8080/q/graphql-ui"
+	@echo "  GraphQL API:    http://localhost:8080/graphql"
+	@echo "  Dev UI:         http://localhost:8080/q/dev"
+	@echo ""
+	@echo "$(GREEN)Starting in 3 seconds...$(NC)"
+	@sleep 3
+	@echo ""
+	$(MAVEN) quarkus:dev
+
 start: setup dev ## Complete startup (setup + run in dev mode)
 
 stop: docker-down ## Stop everything
@@ -286,8 +355,8 @@ version: ## Show project version
 
 dynamodb-create-tables: ## Create DynamoDB tables for local development/testing
 	@echo "$(CYAN)Creating DynamoDB tables (if not exist) for local development...$(NC)"
-	aws dynamodb create-table --table-name bookings --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>/dev/null || echo "bookings table exists or error"
-	aws dynamodb create-table --table-name customers --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>/dev/null || echo "customers table exists or error"
-	aws dynamodb create-table --table-name hotels --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>/dev/null || echo "hotels table exists or error"
-	aws dynamodb create-table --table-name rooms --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>/dev/null || echo "rooms table exists or error"
+	AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 aws dynamodb create-table --table-name bookings --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>/dev/null || echo "bookings table exists or error"
+	AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 aws dynamodb create-table --table-name customers --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>/dev/null || echo "customers table exists or error"
+	AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 aws dynamodb create-table --table-name hotels --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>/dev/null || echo "hotels table exists or error"
+	AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 aws dynamodb create-table --table-name rooms --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 --endpoint-url http://localhost:4566 --region us-east-1 2>/dev/null || echo "rooms table exists or error"
 	@echo "$(GREEN)✓ DynamoDB tables ensured$(NC)"
