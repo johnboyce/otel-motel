@@ -372,9 +372,17 @@ make dynamodb-list-tables  # List all tables
 
 ### Reset Database
 ```bash
-make dynamodb-reset        # Reset DynamoDB tables
-# PostgreSQL: Stop docker, remove volume, restart
+make dynamodb-reset              # Reset DynamoDB tables
+make docker-down-volumes         # Stop and remove all volumes (includes PostgreSQL)
 ```
+
+**⚠️ Important: PostgreSQL Initialization**
+
+PostgreSQL initialization scripts only run on **first startup**. If you need to re-run the initialization:
+1. Stop services and remove volumes: `make docker-down-volumes`
+2. Start services again: `make docker-up` or `make infrastructure-up`
+
+To verify initialization ran: `make postgres-init-logs`
 
 ### PostgreSQL Configuration
 ```properties
@@ -444,6 +452,55 @@ make install-tools
 
 # Check dependencies
 make check-deps
+```
+
+## 🐛 Troubleshooting
+
+### PostgreSQL Initialization Issues
+
+**Problem**: PostgreSQL initialization script didn't run or needs to be re-run.
+
+**Solution**: The init script only runs on first startup when the volume is created. To re-initialize:
+```bash
+make docker-down-volumes    # Remove all volumes
+make docker-up             # Restart (will run init script)
+```
+
+Check if initialization ran successfully:
+```bash
+make postgres-init-logs
+```
+
+### Infrastructure Setup Hangs or Fails
+
+**Problem**: `make infrastructure-up` or `make app-ready` hangs or fails.
+
+**Solution**: Services take time to become healthy. The script waits up to 5 minutes. If it times out:
+```bash
+# Check service status
+docker compose ps
+
+# View service logs
+docker compose logs <service-name>
+
+# Common services to check: postgres, keycloak, elasticsearch
+```
+
+### Service Not Healthy
+
+**Problem**: A service shows as "unhealthy" or "starting" for a long time.
+
+**Solution**:
+```bash
+# Check specific service logs
+docker compose logs <service-name>
+
+# Restart specific service
+docker compose restart <service-name>
+
+# Nuclear option: restart everything
+make docker-down
+make docker-up
 ```
 
 ## 📖 Additional Resources
