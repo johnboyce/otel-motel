@@ -6,6 +6,20 @@ This directory contains PostgreSQL configuration and initialization scripts for 
 
 PostgreSQL is used as the persistence layer for Keycloak to maintain authentication and authorization data across container restarts. While the application itself uses DynamoDB for its data storage, Keycloak requires a relational database for its internal data structures.
 
+**⚠️ Important: Database Initialization**
+
+The PostgreSQL initialization script (`init-keycloak-db.sql`) **only runs on the first startup** when the database is created. If you need to re-run the initialization script:
+
+```bash
+# Stop services and remove all volumes (including postgres_data)
+make docker-down-volumes
+
+# Start services again (will run init script)
+make docker-up
+```
+
+This is a standard behavior of the PostgreSQL Docker image's `/docker-entrypoint-initdb.d/` mechanism.
+
 ## Files
 
 ### `init-keycloak-db.sql`
