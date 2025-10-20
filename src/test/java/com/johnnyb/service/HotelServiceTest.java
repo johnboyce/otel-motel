@@ -26,6 +26,7 @@ class HotelServiceTest {
             .name("Test Hotel")
             .address("123 Test Ave")
             .city("Test City")
+            .state("TS")
             .country("Test Country")
             .description("A test hotel")
             .starRating(4)
@@ -38,6 +39,7 @@ class HotelServiceTest {
         assertTrue(found.isPresent());
         assertEquals("Test Hotel", found.get().getName());
         assertEquals("Test City", found.get().getCity());
+        assertEquals("TS", found.get().getState());
         assertEquals(4, found.get().getStarRating());
         
         // Cleanup
@@ -53,6 +55,7 @@ class HotelServiceTest {
             .name("City Test Hotel")
             .address("456 Test Blvd")
             .city(uniqueCity)
+            .state("UC")
             .country("Test Country")
             .description("A test hotel in a unique city")
             .starRating(3)
@@ -94,6 +97,7 @@ class HotelServiceTest {
             .name("Delete Test Hotel")
             .address("789 Delete Rd")
             .city("Delete City")
+            .state("DC")
             .country("Delete Country")
             .description("A hotel to be deleted")
             .starRating(2)
