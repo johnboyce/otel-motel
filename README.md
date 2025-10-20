@@ -4,6 +4,7 @@ A modern hotel booking GraphQL server built with Quarkus, featuring comprehensiv
 
 ## 🌟 Features
 
+- **Modern Web UI** - Professional React-based interface with Quinoa integration ⭐ NEW!
 - **GraphQL API** - Complete hotel booking system with queries and mutations
 - **OAuth2/OIDC Security** - JWT-based authentication with role-based access control (via Keycloak)
 - **Keycloak Authentication** - Persistent user authentication with PostgreSQL backend
@@ -86,6 +87,7 @@ make dev
 
 | Service | URL | Description |
 |---------|-----|-------------|
+| **Web UI** | **http://localhost:8080/** | **Modern hotel booking interface ⭐ NEW!** |
 | GraphQL UI | http://localhost:8080/q/graphql-ui | Interactive API explorer |
 | GraphQL Endpoint | http://localhost:8080/graphql | API endpoint |
 | Dev UI | http://localhost:8080/q/dev | Quarkus dev console |
@@ -97,7 +99,9 @@ make dev
 
 ## 📚 Documentation
 
-- **[Infrastructure Setup Guide](INFRASTRUCTURE.md)** - **NEW!** Complete guide to infrastructure setup and Keycloak schema loading
+- **[UI Documentation](UI-README.md)** - **NEW!** Modern React UI setup and features
+- **[UI Features Guide](UI-FEATURES.md)** - **NEW!** Detailed UI components and design
+- **[Infrastructure Setup Guide](INFRASTRUCTURE.md)** - Complete guide to infrastructure setup and Keycloak schema loading
 - **[Quick Start Guide](docs/QUICKSTART.md)** - Get running in 5 minutes!
 - **[Security Setup Guide](docs/SECURITY.md)** - OAuth2/OIDC authentication and authorization
 - **[Testing Guide](docs/TESTING.md)** - Comprehensive test scenarios
@@ -111,6 +115,12 @@ make dev
 ## 🏗️ Architecture
 
 ```
+┌─────────────────┐
+│   React UI      │  ⭐ NEW!
+│   (Quinoa)      │
+└────────┬────────┘
+         │
+         ▼
 ┌─────────────────┐
 │  GraphQL API    │
 │  (Quarkus)      │
