@@ -1,8 +1,16 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+test('renders OTEL MOTEL header', () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  const headerElement = screen.getByText(/OTEL MOTEL/i);
+  expect(headerElement).toBeInTheDocument();
+});
+
+test('renders navigation links', () => {
+  render(<App />);
+  const hotelsLink = screen.getByText(/Hotels/i);
+  const bookingsLink = screen.getByText(/My Bookings/i);
+  expect(hotelsLink).toBeInTheDocument();
+  expect(bookingsLink).toBeInTheDocument();
 });
