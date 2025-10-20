@@ -117,6 +117,7 @@ public class Booking {
         .addAttribute(String.class, a -> a.name("customerId").getter(Booking::getCustomerId).setter(Booking::setCustomerId))
         .addAttribute(LocalDate.class, a -> a.name("checkInDate").getter(Booking::getCheckInDate).setter(Booking::setCheckInDate).attributeConverter(new LocalDateConverter()))
         .addAttribute(LocalDate.class, a -> a.name("checkOutDate").getter(Booking::getCheckOutDate).setter(Booking::setCheckOutDate).attributeConverter(new LocalDateConverter()))
+        .addAttribute(Integer.class, a -> a.name("numberOfGuests").getter(Booking::getNumberOfGuests).setter(Booking::setNumberOfGuests))
         .addAttribute(BigDecimal.class, a -> a.name("totalPrice").getter(Booking::getTotalPrice).setter(Booking::setTotalPrice).attributeConverter(new BigDecimalConverter()))
         .addAttribute(BookingStatus.class, a -> a.name("status").getter(Booking::getStatus).setter(Booking::setStatus).attributeConverter(new BookingStatusConverter()))
         .addAttribute(String.class, a -> a.name("specialRequests").getter(Booking::getSpecialRequests).setter(Booking::setSpecialRequests))

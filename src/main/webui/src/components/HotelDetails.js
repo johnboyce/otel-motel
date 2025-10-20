@@ -5,30 +5,39 @@ import { useQuery, useMutation } from '@apollo/client/react';
 import './HotelDetails.css';
 
 const GET_HOTEL_WITH_ROOMS = gql`
-  query GetHotelWithRooms($id: Int!) {
+  query GetHotelWithRooms($id: String!) {
     hotel(id: $id) {
       id
       name
+      address
       city
       state
+      zipCode
+      country
+      phone
       starRating
       description
-      rooms {
-        id
-        roomNumber
-        roomType
-        pricePerNight
-        capacity
-        amenities
-      }
+    }
+  }
+`;
+
+const GET_ROOMS_BY_HOTEL = gql`
+  query GetRoomsByHotel($hotelId: String!) {
+    roomsByHotel(hotelId: $hotelId) {
+      id
+      roomNumber
+      roomType
+      pricePerNight
+      capacity
+      description
     }
   }
 `;
 
 const CREATE_BOOKING = gql`
   mutation CreateBooking(
-    $roomId: Int!
-    $customerId: Int!
+    $roomId: String!
+    $customerId: String!
     $checkInDate: String!
     $checkOutDate: String!
     $numberOfGuests: Int!
@@ -59,7 +68,11 @@ function HotelDetails() {
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
   const { loading, error, data } = useQuery(GET_HOTEL_WITH_ROOMS, {
-    variables: { id: parseInt(id) },
+    variables: { id },
+  });
+
+  const { loading: roomsLoading, error: roomsError, data: roomsData } = useQuery(GET_ROOMS_BY_HOTEL, {
+    variables: { hotelId: id },
   });
 
   const [createBooking, { loading: bookingLoading }] = useMutation(CREATE_BOOKING, {
@@ -72,17 +85,19 @@ function HotelDetails() {
     },
   });
 
-  if (loading) return <div className="loading">Loading hotel details...</div>;
+  if (loading || roomsLoading) return <div className="loading">Loading hotel details...</div>;
   if (error) return <div className="error">Error loading hotel: {error.message}</div>;
+  if (roomsError) return <div className="error">Error loading rooms: {roomsError.message}</div>;
 
   const hotel = data.hotel;
+  const rooms = roomsData.roomsByHotel || [];
 
   const handleBooking = async () => {
     try {
       await createBooking({
         variables: {
           roomId: selectedRoom.id,
-          customerId: 1, // Default customer for demo
+          customerId: "1", // Default customer for demo - should be a String UUID in production
           checkInDate: checkIn,
           checkOutDate: checkOut,
           numberOfGuests: guests,
@@ -101,7 +116,13 @@ function HotelDetails() {
       <div className="hotel-header">
         <div>
           <h1>{hotel.name}</h1>
-          <p className="hotel-location">📍 {hotel.city}, {hotel.state}</p>
+          <p className="hotel-location">
+            📍 {hotel.address && `${hotel.address}, `}{hotel.city}, {hotel.state} {hotel.zipCode}
+            {hotel.country && hotel.country !== 'USA' && `, ${hotel.country}`}
+          </p>
+          {hotel.phone && (
+            <p className="hotel-phone">📞 {hotel.phone}</p>
+          )}
           <div className="hotel-rating">
             {'★'.repeat(hotel.starRating)}
             {'☆'.repeat(5 - hotel.starRating)}
@@ -116,7 +137,7 @@ function HotelDetails() {
       <h2 className="rooms-title">Available Rooms</h2>
       
       <div className="rooms-grid">
-        {hotel.rooms.map((room) => (
+        {rooms.map((room) => (
           <div key={room.id} className="room-card">
             <div className="room-header">
               <h3>Room {room.roomNumber}</h3>
@@ -131,10 +152,10 @@ function HotelDetails() {
                 <span className="label">Price:</span>
                 <span className="value price">${room.pricePerNight}/night</span>
               </div>
-              {room.amenities && (
-                <div className="room-amenities">
-                  <span className="label">Amenities:</span>
-                  <span className="value">{room.amenities}</span>
+              {room.description && (
+                <div className="room-description">
+                  <span className="label">Description:</span>
+                  <span className="value">{room.description}</span>
                 </div>
               )}
             </div>

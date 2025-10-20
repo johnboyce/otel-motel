@@ -22,7 +22,9 @@ public class Hotel {
     private String address;
     private String city;
     private String state;
+    private String zipCode;
     private String country;
+    private String phone;
     private String description;
     private Integer starRating;
     private List<String> roomIds;
@@ -37,8 +39,12 @@ public class Hotel {
     public void setCity(String city) { this.city = city; }
     public String getState() { return state; }
     public void setState(String state) { this.state = state; }
+    public String getZipCode() { return zipCode; }
+    public void setZipCode(String zipCode) { this.zipCode = zipCode; }
     public String getCountry() { return country; }
     public void setCountry(String country) { this.country = country; }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
     public Integer getStarRating() { return starRating; }
@@ -72,7 +78,9 @@ public class Hotel {
         .addAttribute(String.class, a -> a.name("address").getter(Hotel::getAddress).setter(Hotel::setAddress))
         .addAttribute(String.class, a -> a.name("city").getter(Hotel::getCity).setter(Hotel::setCity))
         .addAttribute(String.class, a -> a.name("state").getter(Hotel::getState).setter(Hotel::setState))
+        .addAttribute(String.class, a -> a.name("zipCode").getter(Hotel::getZipCode).setter(Hotel::setZipCode))
         .addAttribute(String.class, a -> a.name("country").getter(Hotel::getCountry).setter(Hotel::setCountry))
+        .addAttribute(String.class, a -> a.name("phone").getter(Hotel::getPhone).setter(Hotel::setPhone))
         .addAttribute(String.class, a -> a.name("description").getter(Hotel::getDescription).setter(Hotel::setDescription))
         .addAttribute(Integer.class, a -> a.name("starRating").getter(Hotel::getStarRating).setter(Hotel::setStarRating))
         .addAttribute(EnhancedType.listOf(String.class), a -> a.name("roomIds").getter(Hotel::getRoomIds).setter(Hotel::setRoomIds).attributeConverter(new StringListConverter()))

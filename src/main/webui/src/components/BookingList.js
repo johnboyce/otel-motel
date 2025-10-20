@@ -34,7 +34,7 @@ const GET_UPCOMING_BOOKINGS = gql`
 `;
 
 const CANCEL_BOOKING = gql`
-  mutation CancelBooking($bookingId: Int!) {
+  mutation CancelBooking($bookingId: String!) {
     cancelBooking(bookingId: $bookingId) {
       id
       status
