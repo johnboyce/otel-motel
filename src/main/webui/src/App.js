@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { ApolloClient, InMemoryCache } from '@apollo/client';
+import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
 import { ApolloProvider } from '@apollo/client/react';
 import HotelList from './components/HotelList';
 import HotelDetails from './components/HotelDetails';
@@ -8,7 +8,9 @@ import BookingList from './components/BookingList';
 import './App.css';
 
 const client = new ApolloClient({
-  uri: '/graphql',
+  link: new HttpLink({
+    uri: '/graphql',
+  }),
   cache: new InMemoryCache(),
 });
 
