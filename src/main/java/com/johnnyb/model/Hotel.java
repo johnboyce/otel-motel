@@ -21,6 +21,7 @@ public class Hotel {
     private String name;
     private String address;
     private String city;
+    private String state;
     private String country;
     private String description;
     private Integer starRating;
@@ -34,6 +35,8 @@ public class Hotel {
     public void setAddress(String address) { this.address = address; }
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }
+    public String getState() { return state; }
+    public void setState(String state) { this.state = state; }
     public String getCountry() { return country; }
     public void setCountry(String country) { this.country = country; }
     public String getDescription() { return description; }
@@ -68,6 +71,7 @@ public class Hotel {
         .addAttribute(String.class, a -> a.name("name").getter(Hotel::getName).setter(Hotel::setName))
         .addAttribute(String.class, a -> a.name("address").getter(Hotel::getAddress).setter(Hotel::setAddress))
         .addAttribute(String.class, a -> a.name("city").getter(Hotel::getCity).setter(Hotel::setCity))
+        .addAttribute(String.class, a -> a.name("state").getter(Hotel::getState).setter(Hotel::setState))
         .addAttribute(String.class, a -> a.name("country").getter(Hotel::getCountry).setter(Hotel::setCountry))
         .addAttribute(String.class, a -> a.name("description").getter(Hotel::getDescription).setter(Hotel::setDescription))
         .addAttribute(Integer.class, a -> a.name("starRating").getter(Hotel::getStarRating).setter(Hotel::setStarRating))

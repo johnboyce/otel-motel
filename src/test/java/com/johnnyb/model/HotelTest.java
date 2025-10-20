@@ -17,6 +17,7 @@ class HotelTest {
             .name("Grand Pacific Resort")
             .address("100 Beachfront Drive")
             .city("Miami Beach")
+            .state("FL")
             .country("USA")
             .description("A luxurious beachfront resort")
             .starRating(5)
@@ -28,6 +29,7 @@ class HotelTest {
         assertEquals("Grand Pacific Resort", hotel.getName());
         assertEquals("100 Beachfront Drive", hotel.getAddress());
         assertEquals("Miami Beach", hotel.getCity());
+        assertEquals("FL", hotel.getState());
         assertEquals("USA", hotel.getCountry());
         assertEquals("A luxurious beachfront resort", hotel.getDescription());
         assertEquals(5, hotel.getStarRating());
@@ -44,6 +46,7 @@ class HotelTest {
         hotel.setName("Metropolitan Business Hotel");
         hotel.setAddress("250 Corporate Plaza");
         hotel.setCity("New York");
+        hotel.setState("NY");
         hotel.setCountry("USA");
         hotel.setDescription("Modern business hotel");
         hotel.setStarRating(4);
@@ -52,6 +55,7 @@ class HotelTest {
         assertEquals(id, hotel.getId());
         assertEquals("Metropolitan Business Hotel", hotel.getName());
         assertEquals("New York", hotel.getCity());
+        assertEquals("NY", hotel.getState());
         assertEquals(4, hotel.getStarRating());
     }
 
