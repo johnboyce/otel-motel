@@ -30,6 +30,7 @@ Central data store for logs, traces, and metrics with ECS-compliant schema.
 
 #### Index Patterns
 - `otel-motel-logs-*` - Application logs
+- `otel-motel-otlp-logs-*` - OTLP protocol logs
 - `otel-motel-traces-*` - Distributed traces
 - `otel-motel-metrics-*` - Application metrics
 
@@ -138,14 +139,17 @@ All Elasticsearch configurations are now externalized as JSON files in the `temp
 
 #### Index Templates (`templates/index-templates/`)
 - **otel-motel-logs-template.json** - Defines the schema for application logs with full ECS field mappings
+- **otel-motel-otlp-logs-template.json** - Defines the schema for OTLP protocol logs with full ECS field mappings
 - **otel-motel-traces-template.json** - Defines the schema for distributed traces
 - **otel-motel-metrics-template.json** - Defines the schema for application metrics
 
 #### ILM Policies (`templates/ilm-policies/`)
 - **otel-motel-logs-policy.json** - Lifecycle policy for automatic log rotation and deletion (7 day rollover, 30 day retention)
+- **otel-motel-otlp-logs-policy.json** - Lifecycle policy for automatic OTLP log rotation and deletion (7 day rollover, 30 day retention)
 
 #### Ingest Pipelines (`templates/ingest-pipelines/`)
 - **otel-motel-logs-ecs.json** - Pipeline that remaps OpenTelemetry fields to ECS standard format and removes redundant fields
+- **otel-motel-otlp-logs-ecs.json** - Pipeline that remaps OpenTelemetry OTLP fields to ECS standard format and removes redundant fields
 
 These files can be edited directly to customize Elasticsearch behavior without modifying the setup script.
 
@@ -153,6 +157,7 @@ These files can be edited directly to customize Elasticsearch behavior without m
 
 The OTEL Collector exports data directly to Elasticsearch using the elasticsearch exporter:
 - **Logs**: Exported to `otel-motel-logs` index
+- **OTLP Logs**: Exported to `otel-motel-otlp-logs` index (dedicated OTLP protocol logs)
 - **Traces**: Exported to `otel-motel-traces` index
 - **Metrics**: Exported to `otel-motel-metrics` index
 
@@ -178,6 +183,7 @@ Logs are automatically managed with ILM policies:
 2. Navigate to "Stack Management" → "Index Patterns"
 3. Create index patterns:
    - `otel-motel-logs-*`
+   - `otel-motel-otlp-logs-*`
    - `otel-motel-traces-*`
    - `otel-motel-metrics-*`
 4. Set `@timestamp` as the time field
