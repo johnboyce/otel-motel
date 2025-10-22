@@ -24,6 +24,14 @@ curl -X PUT "$ELASTICSEARCH_HOST/_index_template/otel-motel-logs-template" \
 echo ""
 echo "Created logs index template"
 
+# Create index template for OTLP logs with ECS mapping
+curl -X PUT "$ELASTICSEARCH_HOST/_index_template/otel-motel-otlp-logs-template" \
+  -H 'Content-Type: application/json' \
+  -d @"$TEMPLATES_DIR/index-templates/otel-motel-otlp-logs-template.json"
+
+echo ""
+echo "Created OTLP logs index template"
+
 # Create index template for traces
 curl -X PUT "$ELASTICSEARCH_HOST/_index_template/otel-motel-traces-template" \
   -H 'Content-Type: application/json' \
@@ -48,6 +56,14 @@ curl -X PUT "$ELASTICSEARCH_HOST/_ilm/policy/otel-motel-logs-policy" \
 echo ""
 echo "Created ILM policy for logs"
 
+# Create Index Lifecycle Management (ILM) policy for OTLP log rotation
+curl -X PUT "$ELASTICSEARCH_HOST/_ilm/policy/otel-motel-otlp-logs-policy" \
+  -H 'Content-Type: application/json' \
+  -d @"$TEMPLATES_DIR/ilm-policies/otel-motel-otlp-logs-policy.json"
+
+echo ""
+echo "Created ILM policy for OTLP logs"
+
 # Create ingest pipeline for ECS remapping
 curl -X PUT "$ELASTICSEARCH_HOST/_ingest/pipeline/otel-motel-logs-ecs" \
   -H 'Content-Type: application/json' \
@@ -55,11 +71,19 @@ curl -X PUT "$ELASTICSEARCH_HOST/_ingest/pipeline/otel-motel-logs-ecs" \
 echo ""
 echo "Created ECS remapping ingest pipeline"
 
+# Create ingest pipeline for OTLP logs ECS remapping
+curl -X PUT "$ELASTICSEARCH_HOST/_ingest/pipeline/otel-motel-otlp-logs-ecs" \
+  -H 'Content-Type: application/json' \
+  -d @"$TEMPLATES_DIR/ingest-pipelines/otel-motel-otlp-logs-ecs.json"
+echo ""
+echo "Created OTLP logs ECS remapping ingest pipeline"
+
 echo ""
 echo "✅ Elasticsearch setup completed successfully!"
 echo ""
 echo "Index patterns created:"
 echo "  - otel-motel-logs-*"
+echo "  - otel-motel-otlp-logs-*"
 echo "  - otel-motel-traces-*"
 echo "  - otel-motel-metrics-*"
 echo ""
