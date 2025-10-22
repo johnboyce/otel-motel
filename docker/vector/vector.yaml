@@ -10,16 +10,39 @@ sources:
     type: "socket"
     mode: "udp"
     address: "0.0.0.0:12201"
+    max_length: 8192
     decoding:
-      codec: "gelf"
+      codec: "bytes"
+    framing:
+      method: "bytes"
 
 # Transforms - Process and enrich logs
 transforms:
+  # Parse GELF messages (received as raw bytes, need to decompress)
+  decompress_gelf:
+    type: "remap"
+    inputs:
+      - "gelf_input"
+    source: |
+      # GELF messages are in the .message field as bytes
+      # Try to decompress and parse as JSON
+      raw_bytes = .message
+      decompressed, err = decode_gzip(raw_bytes)
+      if err == null {
+        # Successfully decompressed
+        .temp = parse_json!(decompressed)
+      } else {
+        # Not compressed, try to parse as is
+        .temp = parse_json!(to_string!(raw_bytes))
+      }
+      # Replace root with parsed content
+      . = .temp
+  
   # Parse and normalize GELF messages
   parse_gelf:
     type: "remap"
     inputs:
-      - "gelf_input"
+      - "decompress_gelf"
     source: |
       # Ensure timestamp is properly formatted
       if !exists(.timestamp) {
