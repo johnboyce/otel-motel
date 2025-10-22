@@ -109,6 +109,27 @@ services:
       elasticsearch:
         condition: service_healthy
 
+  # Vector for GELF log processing
+  vector:
+    image: timberio/vector:0.34.1-alpine
+    container_name: otel-motel-vector
+    volumes:
+      - ./docker/vector/vector.yaml:/etc/vector/vector.yaml:ro
+    ports:
+      - "12201:12201/udp" # GELF UDP receiver
+    networks:
+      - otel-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    command: ["--config", "/etc/vector/vector.yaml"]
+    healthcheck:
+      test: ["CMD", "vector", "validate", "--config", "/etc/vector/vector.yaml"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
   # Keycloak for OAuth2/OIDC
   keycloak:
     image: quay.io/keycloak/keycloak:23.0

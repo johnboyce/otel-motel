@@ -78,12 +78,36 @@ curl -X PUT "$ELASTICSEARCH_HOST/_ingest/pipeline/otel-motel-otlp-logs-ecs" \
 echo ""
 echo "Created OTLP logs ECS remapping ingest pipeline"
 
+# Create index template for GELF logs with ECS mapping
+curl -X PUT "$ELASTICSEARCH_HOST/_index_template/otel-motel-gelf-logs-template" \
+  -H 'Content-Type: application/json' \
+  -d @"$TEMPLATES_DIR/index-templates/otel-motel-gelf-logs-template.json"
+
+echo ""
+echo "Created GELF logs index template"
+
+# Create Index Lifecycle Management (ILM) policy for GELF log rotation
+curl -X PUT "$ELASTICSEARCH_HOST/_ilm/policy/otel-motel-gelf-logs-policy" \
+  -H 'Content-Type: application/json' \
+  -d @"$TEMPLATES_DIR/ilm-policies/otel-motel-gelf-logs-policy.json"
+
+echo ""
+echo "Created ILM policy for GELF logs"
+
+# Create ingest pipeline for GELF logs ECS remapping
+curl -X PUT "$ELASTICSEARCH_HOST/_ingest/pipeline/otel-motel-gelf-logs-ecs" \
+  -H 'Content-Type: application/json' \
+  -d @"$TEMPLATES_DIR/ingest-pipelines/otel-motel-gelf-logs-ecs.json"
+echo ""
+echo "Created GELF logs ECS remapping ingest pipeline"
+
 echo ""
 echo "✅ Elasticsearch setup completed successfully!"
 echo ""
 echo "Index patterns created:"
 echo "  - otel-motel-logs-*"
 echo "  - otel-motel-otlp-logs-*"
+echo "  - otel-motel-gelf-logs-*"
 echo "  - otel-motel-traces-*"
 echo "  - otel-motel-metrics-*"
 echo ""

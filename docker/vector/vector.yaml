@@ -1,0 +1,96 @@
+# Vector Configuration for GELF Log Processing
+# Receives GELF logs from Quarkus and forwards to Elasticsearch
+
+# Data directory for Vector
+data_dir: "/var/lib/vector"
+
+# Sources - Receive GELF logs
+sources:
+  gelf_input:
+    type: "socket"
+    mode: "udp"
+    address: "0.0.0.0:12201"
+    decoding:
+      codec: "gelf"
+
+# Transforms - Process and enrich logs
+transforms:
+  # Parse and normalize GELF messages
+  parse_gelf:
+    type: "remap"
+    inputs:
+      - "gelf_input"
+    source: |
+      # Ensure timestamp is properly formatted
+      .@timestamp = .timestamp ?? now()
+      
+      # Map GELF fields to ECS-compatible structure
+      .service.name = .facility ?? "otel-motel"
+      .log.level = .level_name ?? "INFO"
+      .log.logger = ._logger_name ?? "unknown"
+      .message = .short_message ?? .full_message ?? ""
+      
+      # Add host information
+      .host.name = .host ?? "unknown"
+      
+      # Preserve trace context if present
+      if exists(._traceId) {
+        .trace.id = ._traceId
+      }
+      if exists(._spanId) {
+        .span.id = ._spanId
+      }
+      
+      # Add service metadata
+      if exists(._service_name) {
+        .service.name = ._service_name
+      }
+      if exists(._service_version) {
+        .service.version = ._service_version
+      }
+      if exists(._deployment_environment) {
+        .service.environment = ._deployment_environment
+      }
+      
+      # Handle stack traces
+      if exists(.full_message) && .full_message != .short_message {
+        .error.stack_trace = .full_message
+      }
+      
+      # Remove temporary GELF fields that are no longer needed
+      del(.short_message)
+      del(.full_message)
+      del(.level_name)
+      del(.facility)
+      del(._logger_name)
+      del(._traceId)
+      del(._spanId)
+      del(._service_name)
+      del(._service_version)
+      del(._deployment_environment)
+
+# Sinks - Forward logs to Elasticsearch
+sinks:
+  elasticsearch_gelf:
+    type: "elasticsearch"
+    inputs:
+      - "parse_gelf"
+    endpoints:
+      - "http://elasticsearch:9200"
+    mode: "bulk"
+    bulk:
+      index: "otel-motel-gelf-logs-%Y.%m.%d"
+      action: "create"
+    encoding:
+      codec: "json"
+    healthcheck:
+      enabled: true
+    request:
+      timeout_secs: 60
+    buffer:
+      type: "memory"
+      max_events: 500
+      when_full: "block"
+    batch:
+      timeout_secs: 5
+      max_events: 100
