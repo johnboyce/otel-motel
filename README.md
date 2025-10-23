@@ -104,6 +104,7 @@ make dev
 - **[UI Documentation](UI-README.md)** - **NEW!** Modern React UI setup and features
 - **[UI Features Guide](UI-FEATURES.md)** - **NEW!** Detailed UI components and design
 - **[GELF Logging Guide](docs/GELF-LOGGING.md)** - **⭐ NEW!** High-performance logging with Vector
+- **[GELF Quick Reference](docs/GELF-QUICKREF.md)** - **⭐ NEW!** Quick commands and troubleshooting
 - **[Infrastructure Setup Guide](INFRASTRUCTURE.md)** - Complete guide to infrastructure setup and Keycloak schema loading
 - **[Quick Start Guide](docs/QUICKSTART.md)** - Get running in 5 minutes!
 - **[Security Setup Guide](docs/SECURITY.md)** - OAuth2/OIDC authentication and authorization
@@ -377,6 +378,7 @@ Vector configuration is in `docker/vector/vector.yaml`.
 
 For complete GELF and Vector documentation, see:
 - **[GELF Logging Guide](docs/GELF-LOGGING.md)** - Complete setup and usage
+- **[GELF Quick Reference](docs/GELF-QUICKREF.md)** - Quick commands and troubleshooting
 - **[ELK Stack Guide](elk/README.md)** - Elasticsearch configuration
 
 #### Viewing GELF Logs

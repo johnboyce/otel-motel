@@ -31,6 +31,8 @@ Complete documentation for the otel-motel hotel booking system.
 
 ### Observability
 - **[OpenTelemetry Setup](../OTEL-SETUP.md)** - OTEL configuration
+- **[GELF Logging Guide](GELF-LOGGING.md)** - **⭐ NEW!** High-performance logging with Vector
+- **[GELF Quick Reference](GELF-QUICKREF.md)** - **⭐ NEW!** Quick commands and troubleshooting
 - **[ELK Guide](../elk/README.md)** - Elasticsearch and Kibana
 - **[Monitoring](../README.md#monitoring--observability)** - Metrics and traces
 
@@ -52,32 +54,34 @@ Complete documentation for the otel-motel hotel booking system.
 │  - Query & Mutation Resolvers               │
 └─────────────────┬───────────────────────────┘
                   │
-        ┌─────────┴─────────┐
-        │                   │
-        ▼                   ▼
-┌──────────────┐   ┌──────────────────┐
-│   DynamoDB   │   │  OpenTelemetry   │
-│ (LocalStack) │   │    Exporter      │
-│              │   │                  │
-│ - Hotels     │   └────────┬─────────┘
-│ - Rooms      │            │
-│ - Bookings   │            ▼
-│ - Customers  │   ┌──────────────────┐
-└──────────────┘   │ OTEL Collector   │
-                   │  (HTTP/Protobuf) │
-                   └────────┬─────────┘
-                            │
-                            ▼
-                    ┌──────────────┐
-                    │ Elasticsearch│
-                    │   (Storage)  │
-                    └──────┬───────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │    Kibana    │
-                    │(Visualization)│
-                    └──────────────┘
+        ┌─────────┴─────────┬──────────────┐
+        │                   │              │
+        ▼                   ▼              ▼
+┌──────────────┐   ┌──────────────────┐  ┌────────┐
+│   DynamoDB   │   │  OpenTelemetry   │  │ Vector │ ⭐ NEW!
+│ (LocalStack) │   │    Exporter      │  │ (GELF) │
+│              │   │                  │  └────┬───┘
+│ - Hotels     │   └────────┬─────────┘       │
+│ - Rooms      │            │                 │
+│ - Bookings   │            ▼                 │
+│ - Customers  │   ┌──────────────────┐       │
+└──────────────┘   │ OTEL Collector   │       │
+                   │  (HTTP/Protobuf) │       │
+                   └────────┬─────────┘       │
+                            │                 │
+                            └────────┬────────┘
+                                     │
+                                     ▼
+                              ┌──────────────┐
+                              │ Elasticsearch│
+                              │   (Storage)  │
+                              └──────┬───────┘
+                                     │
+                                     ▼
+                              ┌──────────────┐
+                              │    Kibana    │
+                              │(Visualization)│
+                              └──────────────┘
 ```
 
 ### Data Model
@@ -104,6 +108,7 @@ Hotel 1───* Room 1───* Booking *───1 Customer
 - **SDK**: AWS SDK Enhanced DynamoDB Client
 - **Observability**: OpenTelemetry
 - **Logging**: ELK Stack (Elasticsearch 8.11, Kibana 8.11)
+- **Log Shipper**: Vector (GELF) ⭐ NEW!
 - **Containers**: Docker & Docker Compose
 - **Build Tool**: Maven
 - **API Testing**: Bruno
@@ -126,6 +131,7 @@ Hotel 1───* Room 1───* Booking *───1 Customer
 ### 3. Observability
 - **Distributed Tracing**: Track requests across services
 - **Structured Logging**: ECS-compliant JSON logs
+- **GELF Logging**: High-performance UDP logging via Vector ⭐ NEW!
 - **Metrics Collection**: Application performance metrics
 - **Log Correlation**: Link logs with traces via trace IDs
 
