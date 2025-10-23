@@ -1,0 +1,69 @@
+{
+  "description": "Pipeline for processing GELF logs from Vector into ECS format",
+  "processors": [
+    {
+      "set": {
+        "field": "ecs.version",
+        "value": "8.11.0"
+      }
+    },
+    {
+      "date": {
+        "field": "@timestamp",
+        "target_field": "@timestamp",
+        "formats": ["ISO8601", "UNIX", "UNIX_MS"],
+        "ignore_failure": true
+      }
+    },
+    {
+      "set": {
+        "field": "event.dataset",
+        "value": "otel-motel.gelf-logs",
+        "if": "ctx.event?.dataset == null"
+      }
+    },
+    {
+      "set": {
+        "field": "event.kind",
+        "value": "event",
+        "if": "ctx.event?.kind == null"
+      }
+    },
+    {
+      "set": {
+        "field": "event.category",
+        "value": ["log"],
+        "if": "ctx.event?.category == null"
+      }
+    },
+    {
+      "uppercase": {
+        "field": "log.level",
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    },
+    {
+      "script": {
+        "lang": "painless",
+        "source": "if (ctx.log?.level != null) { String level = ctx.log.level.toLowerCase(); if (level == 'error' || level == 'fatal') { ctx.event.severity = 3; } else if (level == 'warn' || level == 'warning') { ctx.event.severity = 2; } else if (level == 'info') { ctx.event.severity = 1; } else { ctx.event.severity = 0; } }",
+        "ignore_failure": true
+      }
+    },
+    {
+      "remove": {
+        "field": ["timestamp"],
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    }
+  ],
+  "on_failure": [
+    {
+      "set": {
+        "field": "_ingest.pipeline_error",
+        "value": "{{ _ingest.on_failure_message }}"
+      }
+    }
+  ]
+}

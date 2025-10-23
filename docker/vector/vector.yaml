@@ -1,0 +1,146 @@
+# Vector Configuration for GELF Log Processing
+# Receives GELF logs from Quarkus and forwards to Elasticsearch
+
+# Data directory for Vector
+data_dir: "/var/lib/vector"
+
+# Sources - Receive GELF logs
+sources:
+  gelf_input:
+    type: "socket"
+    mode: "udp"
+    address: "0.0.0.0:12201"
+    max_length: 8192
+    decoding:
+      codec: "bytes"
+    framing:
+      method: "bytes"
+
+# Transforms - Process and enrich logs
+transforms:
+  # Parse GELF messages (received as raw bytes, need to decompress)
+  decompress_gelf:
+    type: "remap"
+    inputs:
+      - "gelf_input"
+    source: |
+      # GELF messages are in the .message field as bytes
+      # Try to decompress and parse as JSON
+      raw_bytes = .message
+      decompressed, err = decode_gzip(raw_bytes)
+      if err == null {
+        # Successfully decompressed
+        .temp = parse_json!(decompressed)
+      } else {
+        # Not compressed, try to parse as is
+        .temp = parse_json!(to_string!(raw_bytes))
+      }
+      # Replace root with parsed content
+      . = .temp
+  
+  # Parse and normalize GELF messages
+  parse_gelf:
+    type: "remap"
+    inputs:
+      - "decompress_gelf"
+    source: |
+      # Ensure timestamp is properly formatted
+      if !exists(.timestamp) {
+        .@timestamp = now()
+      } else {
+        .@timestamp = .timestamp
+      }
+      
+      # Map GELF fields to ECS-compatible structure
+      if exists(.facility) {
+        .service.name = .facility
+      } else {
+        .service.name = "otel-motel"
+      }
+      
+      if exists(.level_name) {
+        .log.level = .level_name
+      } else {
+        .log.level = "INFO"
+      }
+      
+      if exists(._logger_name) {
+        .log.logger = ._logger_name
+      } else {
+        .log.logger = "unknown"
+      }
+      
+      if exists(.short_message) {
+        .message = .short_message
+      } else if exists(.full_message) {
+        .message = .full_message
+      } else {
+        .message = ""
+      }
+      
+      # Add host information
+      if exists(.host) {
+        .host.name = .host
+      } else {
+        .host.name = "unknown"
+      }
+      
+      # Preserve trace context if present
+      if exists(._traceId) {
+        .trace.id = ._traceId
+        del(._traceId)
+      }
+      if exists(._spanId) {
+        .span.id = ._spanId
+        del(._spanId)
+      }
+      
+      # Add service metadata
+      if exists(._service_name) {
+        .service.name = ._service_name
+        del(._service_name)
+      }
+      if exists(._service_version) {
+        .service.version = ._service_version
+        del(._service_version)
+      }
+      if exists(._deployment_environment) {
+        .service.environment = ._deployment_environment
+        del(._deployment_environment)
+      }
+      
+      # Handle stack traces
+      if exists(.full_message) && exists(.short_message) && .full_message != .short_message {
+        .error.stack_trace = .full_message
+      }
+      
+      # Remove temporary GELF fields that are no longer needed
+      if exists(.short_message) { del(.short_message) }
+      if exists(.full_message) { del(.full_message) }
+      if exists(.level_name) { del(.level_name) }
+      if exists(.facility) { del(.facility) }
+      if exists(._logger_name) { del(._logger_name) }
+
+# Sinks - Forward logs to Elasticsearch
+sinks:
+  elasticsearch_gelf:
+    type: "elasticsearch"
+    inputs:
+      - "parse_gelf"
+    endpoints:
+      - "http://elasticsearch:9200"
+    mode: "bulk"
+    bulk:
+      index: "otel-motel-gelf-logs-%Y.%m.%d"
+      action: "create"
+    healthcheck:
+      enabled: true
+    request:
+      timeout_secs: 60
+    buffer:
+      type: "memory"
+      max_events: 500
+      when_full: "block"
+    batch:
+      timeout_secs: 5
+      max_events: 100

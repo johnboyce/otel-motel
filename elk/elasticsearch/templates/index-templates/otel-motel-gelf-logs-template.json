@@ -1,0 +1,78 @@
+{
+  "index_patterns": ["otel-motel-gelf-logs-*"],
+  "priority": 500,
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "index.refresh_interval": "5s",
+      "index.lifecycle.name": "otel-motel-gelf-logs-policy",
+      "index.lifecycle.rollover_alias": "otel-motel-gelf-logs"
+    },
+    "mappings": {
+      "properties": {
+        "@timestamp": { "type": "date" },
+        "timestamp": { "type": "date" },
+        "service": {
+          "properties": {
+            "name": { "type": "keyword" },
+            "version": { "type": "keyword" },
+            "environment": { "type": "keyword" }
+          }
+        },
+        "log": {
+          "properties": {
+            "level": { "type": "keyword" },
+            "logger": { "type": "keyword" }
+          }
+        },
+        "message": { 
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "host": {
+          "properties": {
+            "name": { "type": "keyword" },
+            "ip": { "type": "ip" }
+          }
+        },
+        "trace": {
+          "properties": {
+            "id": { "type": "keyword" }
+          }
+        },
+        "span": {
+          "properties": {
+            "id": { "type": "keyword" }
+          }
+        },
+        "error": {
+          "properties": {
+            "message": { "type": "text" },
+            "stack_trace": { "type": "text" },
+            "type": { "type": "keyword" }
+          }
+        },
+        "process": {
+          "properties": {
+            "thread": {
+              "properties": {
+                "name": { "type": "keyword" }
+              }
+            }
+          }
+        },
+        "labels": {
+          "type": "object"
+        },
+        "level": { "type": "keyword" },
+        "version": { "type": "keyword" }
+      }
+    }
+  }
+}

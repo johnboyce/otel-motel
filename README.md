@@ -11,6 +11,7 @@ A modern hotel booking GraphQL server built with Quarkus, featuring comprehensiv
 - **Database** - DynamoDB with LocalStack for application data, PostgreSQL for Keycloak
 - **Sample Data** - Pre-loaded with 5 hotels, 10 customers, and ~50% booking capacity
 - **Observability** - Full OpenTelemetry integration with ELK stack
+- **GELF Logging** - High-performance logging with Vector log shipper ⭐ NEW!
 - **ECS Compliance** - Elasticsearch logs follow Elastic Common Schema
 - **HTTP/Protobuf** - OTLP export using modern HTTP/Protobuf protocol
 - **Docker Compose** - Complete local development stack with organized structure
