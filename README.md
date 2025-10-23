@@ -96,12 +96,14 @@ make dev
 | Kibana | http://localhost:5601 | Log and trace visualization |
 | Elasticsearch | http://localhost:9200 | Data store |
 | OTEL Collector | http://localhost:4318 | Telemetry collector |
+| Vector | UDP localhost:12201 | **GELF log shipper ⭐ NEW!** |
 | PostgreSQL | localhost:5432 | Keycloak database (keycloak/keycloak) |
 
 ## 📚 Documentation
 
 - **[UI Documentation](UI-README.md)** - **NEW!** Modern React UI setup and features
 - **[UI Features Guide](UI-FEATURES.md)** - **NEW!** Detailed UI components and design
+- **[GELF Logging Guide](docs/GELF-LOGGING.md)** - **⭐ NEW!** High-performance logging with Vector
 - **[Infrastructure Setup Guide](INFRASTRUCTURE.md)** - Complete guide to infrastructure setup and Keycloak schema loading
 - **[Quick Start Guide](docs/QUICKSTART.md)** - Get running in 5 minutes!
 - **[Security Setup Guide](docs/SECURITY.md)** - OAuth2/OIDC authentication and authorization
@@ -127,25 +129,34 @@ make dev
 │  (Quarkus)      │
 └────────┬────────┘
          │
-    ┌────┴────┬────────────────┐
-    │         │                │
-    ▼         ▼                ▼
-┌──────┐  ┌────────┐   ┌──────────────┐
-│  DB  │  │Keycloak│   │ OTEL         │
-│(DDB) │  │ (Auth) │   │ Collector    │
-└──────┘  └───┬────┘   └──────┬───────┘
-              │                │
-              ▼                ▼
-         ┌─────────┐      ┌──────────┐
-         │Postgres │      │ Elastic  │
-         │(Keycloak)      │ search   │
-         └─────────┘      └────┬─────┘
-                               │
-                               ▼
-                          ┌─────────┐
-                          │ Kibana  │
-                          └─────────┘
+    ┌────┴────┬─────────────────────────────┐
+    │         │                │             │
+    ▼         ▼                ▼             ▼
+┌──────┐  ┌────────┐   ┌──────────────┐  ┌────────┐
+│  DB  │  │Keycloak│   │ OTEL         │  │ Vector │  ⭐ NEW!
+│(DDB) │  │ (Auth) │   │ Collector    │  │ (GELF) │
+└──────┘  └───┬────┘   └──────┬───────┘  └────┬───┘
+              │                │               │
+              ▼                └───────┬───────┘
+         ┌─────────┐                  │
+         │Postgres │                  ▼
+         │(Keycloak)            ┌──────────┐
+         └─────────┘            │ Elastic  │
+                                │ search   │
+                                └────┬─────┘
+                                     │
+                                     ▼
+                                ┌─────────┐
+                                │ Kibana  │
+                                └─────────┘
 ```
+
+### Logging Pipeline
+
+The application supports multiple logging outputs:
+- **Console**: JSON-formatted logs (ECS)
+- **OTLP**: OpenTelemetry Collector → Elasticsearch
+- **GELF**: Vector → Elasticsearch (high-performance UDP) ⭐
 
 ## 📊 Data Model
 
@@ -301,6 +312,104 @@ quarkus.otel.exporter.otlp.endpoint=http://localhost:4318
 quarkus.otel.exporter.otlp.protocol=http/protobuf
 ```
 
+### GELF Logging with Vector ⭐
+
+The application includes a high-performance GELF (Graylog Extended Log Format) logging pipeline using Vector as a log shipper.
+
+#### Architecture
+
+```
+Application (Quarkus)
+  ├─> Console (JSON/ECS)
+  ├─> OpenTelemetry Collector (OTLP)
+  └─> GELF (UDP:12201)
+        │
+        └─> Vector (Log Shipper)
+              │
+              └─> Elasticsearch (otel-motel-gelf-logs-*)
+                    │
+                    └─> Kibana
+```
+
+#### Quick Start
+
+1. **Start infrastructure** (includes Vector):
+```bash
+make infrastructure-up
+```
+
+2. **Initialize Elasticsearch indices** (includes GELF templates):
+```bash
+make elk-setup
+```
+
+3. **Run the application**:
+```bash
+make dev
+```
+
+4. **View GELF logs in Kibana**:
+- Open Kibana: http://localhost:5601
+- Navigate to **Discover**
+- Create index pattern: `otel-motel-gelf-logs-*`
+- View real-time logs with full stack traces and metadata
+
+#### Configuration
+
+GELF logging is configured in `application.properties`:
+```properties
+quarkus.log.handler.gelf.enabled=true
+quarkus.log.handler.gelf.host=localhost
+quarkus.log.handler.gelf.port=12201
+```
+
+Vector configuration is in `docker/vector/vector.yaml`.
+
+#### Benefits
+
+- **High Performance**: UDP transport with minimal overhead
+- **Rich Metadata**: Includes logger name, thread, source class/method
+- **Stack Traces**: Full exception traces automatically captured
+- **ECS Compliant**: Logs mapped to Elastic Common Schema
+- **Separate Pipeline**: Independent from OTLP for flexibility
+
+#### Documentation
+
+For complete GELF and Vector documentation, see:
+- **[GELF Logging Guide](docs/GELF-LOGGING.md)** - Complete setup and usage
+- **[ELK Stack Guide](elk/README.md)** - Elasticsearch configuration
+
+#### Viewing GELF Logs
+
+```bash
+# Check Vector status
+docker compose ps vector
+docker compose logs vector
+
+# View GELF logs in Elasticsearch
+curl "http://localhost:9200/otel-motel-gelf-logs-*/_search?size=5&sort=@timestamp:desc&pretty"
+
+# View recent logs
+make elk-logs
+```
+
+#### Kibana Queries
+
+Search for specific log patterns:
+```
+# Error logs only
+log.level: "ERROR"
+
+# Logs from a specific service
+log.logger: "com.johnnyb.service.HotelService"
+
+# Logs with stack traces
+_exists_: error.stack_trace
+
+# Recent logs
+@timestamp: [now-15m TO now]
+```
+
 ## 🗂️ Project Structure
 
 ```
@@ -312,11 +421,25 @@ otel-motel/
 ├── src/main/resources/
 │   └── application.properties  # Application configuration
 ├── docker/
-│   ├── otel-collector-config.yaml  # OTEL Collector setup
+│   ├── otel-collector/      # OTEL Collector configuration
+│   ├── vector/              # ⭐ Vector log shipper configuration
+│   ├── keycloak/            # Keycloak realm configuration
+│   ├── postgres/            # PostgreSQL init scripts
 │   └── README.md            # Docker documentation
 ├── elk/
 │   ├── elasticsearch/       # ES index templates and scripts
+│   │   ├── templates/
+│   │   │   ├── index-templates/    # Index templates (incl. GELF)
+│   │   │   ├── ilm-policies/       # Lifecycle policies
+│   │   │   └── ingest-pipelines/   # ECS mapping pipelines
+│   │   └── setup-indices.sh       # Setup script
 │   └── README.md           # ELK documentation
+├── docs/
+│   ├── GELF-LOGGING.md     # ⭐ GELF and Vector guide
+│   ├── QUICKSTART.md       # Quick start guide
+│   ├── SECURITY.md         # Security setup
+│   ├── TESTING.md          # Testing guide
+│   └── README.md           # Documentation index
 ├── bruno/                  # Bruno API collection
 │   ├── Hotels/             # Hotel queries
 │   ├── Rooms/              # Room queries
