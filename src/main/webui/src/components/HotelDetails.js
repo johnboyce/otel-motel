@@ -92,6 +92,10 @@ function HotelDetails() {
   const hotel = data.hotel;
   const rooms = roomsData.roomsByHotel || [];
 
+  if (!hotel) {
+    return <div className="error">Hotel not found</div>;
+  }
+
   const handleBooking = async () => {
     try {
       await createBooking({
