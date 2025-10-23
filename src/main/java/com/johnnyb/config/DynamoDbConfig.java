@@ -14,16 +14,16 @@ import java.net.URI;
 @ApplicationScoped
 public class DynamoDbConfig implements IDynamoDbConfig {
 
-    @ConfigProperty(name = "quarkus.dynamodb.endpoint-override", defaultValue = "http://localhost:4566")
+    @ConfigProperty(name = "aws.dynamodb.endpoint-override", defaultValue = "http://localhost:4566")
     String endpoint;
 
-    @ConfigProperty(name = "quarkus.dynamodb.aws.region", defaultValue = "us-east-1")
+    @ConfigProperty(name = "aws.dynamodb.region", defaultValue = "us-east-1")
     String region;
 
-    @ConfigProperty(name = "quarkus.dynamodb.aws.credentials.static-provider.access-key-id", defaultValue = "test")
+    @ConfigProperty(name = "aws.dynamodb.credentials.access-key-id", defaultValue = "test")
     String accessKeyId;
 
-    @ConfigProperty(name = "quarkus.dynamodb.aws.credentials.static-provider.secret-access-key", defaultValue = "test")
+    @ConfigProperty(name = "aws.dynamodb.credentials.secret-access-key", defaultValue = "test")
     String secretAccessKey;
 
     @Produces

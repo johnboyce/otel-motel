@@ -33,13 +33,10 @@ exporters:
     mapping:
       mode: ecs
 
-  # Export OTLP logs to Elasticsearch in separate index
-  elasticsearch/otlp-logs:
+  # Export OTLP logs to Elasticsearch in separate index using otlphttp
+  elasticsearch/otlphttp:
     endpoints: ["http://elasticsearch:9200"]
     logs_index: otel-motel-otlp-logs
-    pipeline: otel-motel-otlp-logs-ecs
-    mapping:
-      mode: ecs
 
   # Logging exporter for debugging
   logging:
@@ -59,4 +56,4 @@ service:
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch, resource]
-      exporters: [elasticsearch/logs, elasticsearch/otlp-logs, logging]
+      exporters: [elasticsearch/logs, elasticsearch/otlphttp, logging]
