@@ -10,8 +10,9 @@ A modern hotel booking GraphQL server built with Quarkus, featuring comprehensiv
 - **Keycloak Authentication** - Persistent user authentication with PostgreSQL backend
 - **Database** - DynamoDB with LocalStack for application data, PostgreSQL for Keycloak
 - **Sample Data** - Pre-loaded with 5 hotels, 10 customers, and ~50% booking capacity
+- **Three Logging Pipelines** - Independent logging paths with toggle controls ⭐ NEW!
 - **Observability** - Full OpenTelemetry integration with ELK stack
-- **GELF Logging** - High-performance logging with Vector log shipper ⭐ NEW!
+- **GELF Logging** - High-performance logging with Vector log shipper
 - **ECS Compliance** - Elasticsearch logs follow Elastic Common Schema
 - **HTTP/Protobuf** - OTLP export using modern HTTP/Protobuf protocol
 - **Docker Compose** - Complete local development stack with organized structure
@@ -101,10 +102,11 @@ make dev
 
 ## 📚 Documentation
 
-- **[UI Documentation](UI-README.md)** - **NEW!** Modern React UI setup and features
-- **[UI Features Guide](UI-FEATURES.md)** - **NEW!** Detailed UI components and design
-- **[GELF Logging Guide](docs/GELF-LOGGING.md)** - **⭐ NEW!** High-performance logging with Vector
-- **[GELF Quick Reference](docs/GELF-QUICKREF.md)** - **⭐ NEW!** Quick commands and troubleshooting
+- **[Three Logging Pipelines](LOGGING-PIPELINES.md)** - **⭐ NEW!** Configure and control three independent logging paths
+- **[UI Documentation](UI-README.md)** - Modern React UI setup and features
+- **[UI Features Guide](UI-FEATURES.md)** - Detailed UI components and design
+- **[GELF Logging Guide](docs/GELF-LOGGING.md)** - High-performance logging with Vector
+- **[GELF Quick Reference](docs/GELF-QUICKREF.md)** - Quick commands and troubleshooting
 - **[Infrastructure Setup Guide](INFRASTRUCTURE.md)** - Complete guide to infrastructure setup and Keycloak schema loading
 - **[Quick Start Guide](docs/QUICKSTART.md)** - Get running in 5 minutes!
 - **[Security Setup Guide](docs/SECURITY.md)** - OAuth2/OIDC authentication and authorization
@@ -152,12 +154,35 @@ make dev
                                 └─────────┘
 ```
 
-### Logging Pipeline
+### Three Independent Logging Pipelines ⭐ NEW!
 
-The application supports multiple logging outputs:
-- **Console**: JSON-formatted logs (ECS)
-- **OTLP**: OpenTelemetry Collector → Elasticsearch
-- **GELF**: Vector → Elasticsearch (high-performance UDP) ⭐
+The application now supports **three independent logging pipelines**, each writing to a separate Elasticsearch index. You can enable or disable any combination based on your needs.
+
+#### Pipeline 1: OTEL Direct (quarkus → otel-collector → elasticsearch)
+- **Index**: `otel-motel-otel-direct-logs-*`
+- **Best for**: Observability with distributed tracing
+- **Toggle**: `LOGGING_PIPELINE_OTEL_DIRECT_ENABLED=true`
+
+#### Pipeline 2: GELF via Vector (quarkus → gelf → vector → elasticsearch)
+- **Index**: `otel-motel-gelf-logs-*`
+- **Best for**: High-performance production logging
+- **Toggle**: `LOGGING_PIPELINE_GELF_VECTOR_ENABLED=true`
+
+#### Pipeline 3: OTEL via Vector (quarkus → otel-collector → vector → elasticsearch)
+- **Index**: `otel-motel-otel-vector-logs-*`
+- **Best for**: Advanced log processing and transformation
+- **Toggle**: `LOGGING_PIPELINE_OTEL_VECTOR_ENABLED=true`
+
+**Quick Toggle Example**:
+```bash
+# Enable only GELF pipeline for production
+export LOGGING_PIPELINE_OTEL_DIRECT_ENABLED=false
+export LOGGING_PIPELINE_GELF_VECTOR_ENABLED=true
+export LOGGING_PIPELINE_OTEL_VECTOR_ENABLED=false
+make dev
+```
+
+For detailed configuration, see **[LOGGING-PIPELINES.md](LOGGING-PIPELINES.md)**.
 
 ## 📊 Data Model
 

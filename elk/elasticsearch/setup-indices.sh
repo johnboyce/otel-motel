@@ -101,6 +101,38 @@ curl -X PUT "$ELASTICSEARCH_HOST/_ingest/pipeline/otel-motel-gelf-logs-ecs" \
 echo ""
 echo "Created GELF logs ECS remapping ingest pipeline"
 
+# Create index template for OTEL direct logs with ECS mapping
+curl -X PUT "$ELASTICSEARCH_HOST/_index_template/otel-motel-otel-direct-logs-template" \
+  -H 'Content-Type: application/json' \
+  -d @"$TEMPLATES_DIR/index-templates/otel-motel-otel-direct-logs-template.json"
+
+echo ""
+echo "Created OTEL direct logs index template"
+
+# Create Index Lifecycle Management (ILM) policy for OTEL direct log rotation
+curl -X PUT "$ELASTICSEARCH_HOST/_ilm/policy/otel-motel-otel-direct-logs-policy" \
+  -H 'Content-Type: application/json' \
+  -d @"$TEMPLATES_DIR/ilm-policies/otel-motel-otel-direct-logs-policy.json"
+
+echo ""
+echo "Created ILM policy for OTEL direct logs"
+
+# Create index template for OTEL-Vector logs with ECS mapping
+curl -X PUT "$ELASTICSEARCH_HOST/_index_template/otel-motel-otel-vector-logs-template" \
+  -H 'Content-Type: application/json' \
+  -d @"$TEMPLATES_DIR/index-templates/otel-motel-otel-vector-logs-template.json"
+
+echo ""
+echo "Created OTEL-Vector logs index template"
+
+# Create Index Lifecycle Management (ILM) policy for OTEL-Vector log rotation
+curl -X PUT "$ELASTICSEARCH_HOST/_ilm/policy/otel-motel-otel-vector-logs-policy" \
+  -H 'Content-Type: application/json' \
+  -d @"$TEMPLATES_DIR/ilm-policies/otel-motel-otel-vector-logs-policy.json"
+
+echo ""
+echo "Created ILM policy for OTEL-Vector logs"
+
 echo ""
 echo "✅ Elasticsearch setup completed successfully!"
 echo ""
@@ -108,8 +140,15 @@ echo "Index patterns created:"
 echo "  - otel-motel-logs-*"
 echo "  - otel-motel-otlp-logs-*"
 echo "  - otel-motel-gelf-logs-*"
+echo "  - otel-motel-otel-direct-logs-*"
+echo "  - otel-motel-otel-vector-logs-*"
 echo "  - otel-motel-traces-*"
 echo "  - otel-motel-metrics-*"
+echo ""
+echo "Logging Pipelines:"
+echo "  1. Quarkus → OTEL Collector → Elasticsearch (otel-motel-otel-direct-logs-*)"
+echo "  2. Quarkus → GELF → Vector → Elasticsearch (otel-motel-gelf-logs-*)"
+echo "  3. Quarkus → OTEL Collector → Vector → Elasticsearch (otel-motel-otel-vector-logs-*)"
 echo ""
 echo "Access Kibana at: http://localhost:5601"
 echo "Access Elasticsearch at: $ELASTICSEARCH_HOST"

@@ -1,0 +1,95 @@
+{
+  "index_patterns": ["otel-motel-otel-vector-logs-*"],
+  "priority": 500,
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "index.refresh_interval": "5s",
+      "index.lifecycle.name": "otel-motel-otel-vector-logs-policy"
+    },
+    "mappings": {
+      "properties": {
+        "@timestamp": { "type": "date" },
+        "ecs": {
+          "properties": {
+            "version": { "type": "keyword" }
+          }
+        },
+        "service": {
+          "properties": {
+            "name": { "type": "keyword" },
+            "version": { "type": "keyword" },
+            "environment": { "type": "keyword" }
+          }
+        },
+        "log": {
+          "properties": {
+            "level": { "type": "keyword" },
+            "logger": { "type": "keyword" },
+            "origin": {
+              "properties": {
+                "file": {
+                  "properties": {
+                    "name": { "type": "keyword" },
+                    "line": { "type": "integer" }
+                  }
+                },
+                "function": { "type": "keyword" }
+              }
+            }
+          }
+        },
+        "message": { "type": "text" },
+        "process": {
+          "properties": {
+            "thread": {
+              "properties": {
+                "name": { "type": "keyword" },
+                "id": { "type": "keyword" }
+              }
+            }
+          }
+        },
+        "trace": {
+          "properties": {
+            "id": { "type": "keyword" }
+          }
+        },
+        "span": {
+          "properties": {
+            "id": { "type": "keyword" }
+          }
+        },
+        "event": {
+          "properties": {
+            "code": { "type": "keyword" },
+            "action": { "type": "keyword" },
+            "dataset": { "type": "keyword" },
+            "original": { "type": "text" }
+          }
+        },
+        "labels": {
+          "type": "object"
+        },
+        "host": {
+          "properties": {
+            "name": { "type": "keyword" }
+          }
+        },
+        "error": {
+          "properties": {
+            "message": { "type": "text" },
+            "stack_trace": { "type": "text" },
+            "type": { "type": "keyword" }
+          }
+        },
+        "pipeline": {
+          "properties": {
+            "source": { "type": "keyword" }
+          }
+        }
+      }
+    }
+  }
+}
