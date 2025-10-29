@@ -21,9 +21,10 @@ sources:
   # OTLP input from OpenTelemetry Collector
   otlp_input:
     type: "opentelemetry"
-    address: "0.0.0.0:4319"
     grpc:
-      enabled: true
+      address: "0.0.0.0:4319"
+    http:
+      address: "0.0.0.0:4320"
 
 # Transforms - Process and enrich logs
 transforms:
@@ -130,27 +131,34 @@ transforms:
       if exists(.facility) { del(.facility) }
       if exists(._logger_name) { del(._logger_name) }
   
-  # Parse and normalize OTLP messages
+  # Parse and normalize OTLP messages from OpenTelemetry source
   parse_otlp:
     type: "remap"
     inputs:
-      - "otlp_input"
+      - "otlp_input.logs"
     source: |
       # OTLP logs are already structured, just ensure ECS compatibility
-      if !exists(.@timestamp) {
-        if exists(.timestamp) {
-          .@timestamp = .timestamp
-        } else {
-          .@timestamp = now()
-        }
+      # The opentelemetry source outputs structured logs
+      
+      # Ensure timestamp is properly formatted
+      if exists(.timestamp) {
+        .@timestamp = .timestamp
+      } else if exists(.observed_timestamp) {
+        .@timestamp = .observed_timestamp
+      } else {
+        .@timestamp = now()
       }
       
-      # Ensure service name is set
-      if !exists(.service.name) {
+      # Map attributes to service fields
+      if exists(.attributes.service_name) {
+        .service.name = to_string!(.attributes.service_name)
+      } else if exists(.resource.service_name) {
+        .service.name = to_string!(.resource.service_name)
+      } else if !exists(.service.name) {
         .service.name = "otel-motel"
       }
       
-      # Map log level if present
+      # Map log level
       if exists(.severity_text) {
         .log.level = .severity_text
       } else if exists(.severity_number) {
@@ -171,9 +179,21 @@ transforms:
       
       # Ensure message field exists
       if exists(.body) {
-        .message = .body
+        if is_string(.body) {
+          .message = .body
+        } else {
+          .message = to_string(.body) ?? ""
+        }
       } else if !exists(.message) {
         .message = ""
+      }
+      
+      # Map trace context
+      if exists(.trace_id) {
+        .trace.id = .trace_id
+      }
+      if exists(.span_id) {
+        .span.id = .span_id
       }
       
       # Add pipeline source metadata
