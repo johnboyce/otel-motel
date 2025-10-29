@@ -25,10 +25,10 @@ processors:
         action: upsert
 
 exporters:
-  # Export logs to Elasticsearch
+  # Export logs to Elasticsearch directly (Pipeline 1: OTEL -> ELK)
   elasticsearch/logs:
     endpoints: ["http://elasticsearch:9200"]
-    logs_index: otel-motel-logs
+    logs_index: otel-motel-otel-direct-logs
     pipeline: otel-motel-logs-ecs
     mapping:
       mode: ecs
@@ -37,6 +37,12 @@ exporters:
   elasticsearch/otlphttp:
     endpoints: ["http://elasticsearch:9200"]
     logs_index: otel-motel-otlp-logs
+
+  # Export logs to Vector via OTLP (Pipeline 3: OTEL -> Vector -> ELK)
+  otlp/vector:
+    endpoint: vector:4319
+    tls:
+      insecure: true
 
   # Logging exporter for debugging
   logging:
@@ -56,4 +62,4 @@ service:
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch, resource]
-      exporters: [elasticsearch/logs, elasticsearch/otlphttp, logging]
+      exporters: [elasticsearch/logs, elasticsearch/otlphttp, otlp/vector, logging]

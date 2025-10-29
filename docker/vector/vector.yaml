@@ -1,11 +1,13 @@
-# Vector Configuration for GELF Log Processing
-# Receives GELF logs from Quarkus and forwards to Elasticsearch
+# Vector Configuration for Multi-Pipeline Log Processing
+# Receives GELF logs from Quarkus and OTLP logs from OpenTelemetry Collector
+# Forwards to Elasticsearch with separate indices
 
 # Data directory for Vector
 data_dir: "/var/lib/vector"
 
-# Sources - Receive GELF logs
+# Sources - Receive logs from multiple sources
 sources:
+  # GELF input from Quarkus application
   gelf_input:
     type: "socket"
     mode: "udp"
@@ -15,6 +17,13 @@ sources:
       codec: "bytes"
     framing:
       method: "bytes"
+  
+  # OTLP input from OpenTelemetry Collector
+  otlp_input:
+    type: "opentelemetry"
+    address: "0.0.0.0:4319"
+    grpc:
+      enabled: true
 
 # Transforms - Process and enrich logs
 transforms:
@@ -120,8 +129,57 @@ transforms:
       if exists(.level_name) { del(.level_name) }
       if exists(.facility) { del(.facility) }
       if exists(._logger_name) { del(._logger_name) }
+  
+  # Parse and normalize OTLP messages
+  parse_otlp:
+    type: "remap"
+    inputs:
+      - "otlp_input"
+    source: |
+      # OTLP logs are already structured, just ensure ECS compatibility
+      if !exists(.@timestamp) {
+        if exists(.timestamp) {
+          .@timestamp = .timestamp
+        } else {
+          .@timestamp = now()
+        }
+      }
+      
+      # Ensure service name is set
+      if !exists(.service.name) {
+        .service.name = "otel-motel"
+      }
+      
+      # Map log level if present
+      if exists(.severity_text) {
+        .log.level = .severity_text
+      } else if exists(.severity_number) {
+        # Map severity numbers to text levels
+        severity = to_int!(.severity_number)
+        if severity >= 17 {
+          .log.level = "ERROR"
+        } else if severity >= 13 {
+          .log.level = "WARN"
+        } else if severity >= 9 {
+          .log.level = "INFO"
+        } else {
+          .log.level = "DEBUG"
+        }
+      } else {
+        .log.level = "INFO"
+      }
+      
+      # Ensure message field exists
+      if exists(.body) {
+        .message = .body
+      } else if !exists(.message) {
+        .message = ""
+      }
+      
+      # Add pipeline source metadata
+      .pipeline.source = "otel-vector"
 
-# Sinks - Forward logs to Elasticsearch
+# Sinks - Forward logs to Elasticsearch with separate indices
 sinks:
   elasticsearch_gelf:
     type: "elasticsearch"
@@ -132,6 +190,28 @@ sinks:
     mode: "bulk"
     bulk:
       index: "otel-motel-gelf-logs-%Y.%m.%d"
+      action: "create"
+    healthcheck:
+      enabled: true
+    request:
+      timeout_secs: 60
+    buffer:
+      type: "memory"
+      max_events: 500
+      when_full: "block"
+    batch:
+      timeout_secs: 5
+      max_events: 100
+  
+  elasticsearch_otlp:
+    type: "elasticsearch"
+    inputs:
+      - "parse_otlp"
+    endpoints:
+      - "http://elasticsearch:9200"
+    mode: "bulk"
+    bulk:
+      index: "otel-motel-otel-vector-logs-%Y.%m.%d"
       action: "create"
     healthcheck:
       enabled: true

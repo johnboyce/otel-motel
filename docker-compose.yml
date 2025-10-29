@@ -109,7 +109,7 @@ services:
       elasticsearch:
         condition: service_healthy
 
-  # Vector for GELF log processing
+  # Vector for GELF and OTLP log processing
   vector:
     image: timberio/vector:0.34.1-alpine
     container_name: otel-motel-vector
@@ -117,6 +117,7 @@ services:
       - ./docker/vector/vector.yaml:/etc/vector/vector.yaml:ro
     ports:
       - "12201:12201/udp" # GELF UDP receiver
+      - "4319:4319"       # OTLP gRPC receiver for Vector
     networks:
       - otel-network
     depends_on:
