@@ -1,0 +1,41 @@
+# QA Stack Configuration
+config:
+  aws:region: us-east-1
+  
+  # Environment
+  environment: qa
+  
+  # Application
+  app:version: "1.0.0"
+  
+  # VPC Configuration
+  vpc:cidr: "10.0.0.0/16"
+  vpc:availabilityZones: 2
+  
+  # RDS PostgreSQL (Keycloak)
+  db:instanceClass: db.t3.micro
+  db:allocatedStorage: 20
+  db:multiAz: false
+  db:backupRetentionDays: 7
+  
+  # ECS Configuration
+  ecs:cpu: 1024
+  ecs:memory: 2048
+  ecs:desiredCount: 2
+  ecs:minCapacity: 2
+  ecs:maxCapacity: 4
+  
+  # OpenSearch Configuration
+  opensearch:instanceType: t3.small.search
+  opensearch:instanceCount: 1
+  opensearch:volumeSize: 20
+  
+  # DynamoDB Configuration
+  dynamodb:billingMode: PAY_PER_REQUEST
+  
+  # Logging
+  logging:retentionDays: 7
+  
+  # Monitoring
+  monitoring:enabled: true
+  monitoring:alertEmail: alerts-qa@example.com
