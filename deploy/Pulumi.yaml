@@ -1,0 +1,59 @@
+name: otel-motel-infrastructure
+runtime: java
+description: AWS infrastructure for otel-motel hotel booking system with comprehensive observability
+
+config:
+  # Project configuration
+  aws:region:
+    description: AWS region for deployment
+    default: us-east-1
+  
+  # Application configuration
+  app:version:
+    description: Application version to deploy
+    default: "1.0.0"
+  
+  # Networking configuration
+  vpc:cidr:
+    description: VPC CIDR block
+    default: "10.0.0.0/16"
+  
+  vpc:availabilityZones:
+    description: Number of availability zones
+    default: 2
+  
+  # Database configuration
+  db:instanceClass:
+    description: RDS instance class for PostgreSQL
+    default: db.t3.micro
+  
+  db:allocatedStorage:
+    description: Allocated storage for RDS in GB
+    default: 20
+  
+  # Container configuration
+  ecs:cpu:
+    description: CPU units for ECS task (1024 = 1 vCPU)
+    default: 1024
+  
+  ecs:memory:
+    description: Memory for ECS task in MB
+    default: 2048
+  
+  ecs:desiredCount:
+    description: Desired number of ECS tasks
+    default: 2
+  
+  # OpenSearch configuration
+  opensearch:instanceType:
+    description: OpenSearch instance type
+    default: t3.small.search
+  
+  opensearch:instanceCount:
+    description: Number of OpenSearch instances
+    default: 1
+  
+  # Environment configuration
+  environment:
+    description: Environment name (qa, prod)
+    default: qa

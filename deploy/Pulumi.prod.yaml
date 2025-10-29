@@ -1,0 +1,41 @@
+# Production Stack Configuration
+config:
+  aws:region: us-east-1
+  
+  # Environment
+  environment: prod
+  
+  # Application
+  app:version: "1.0.0"
+  
+  # VPC Configuration
+  vpc:cidr: "10.1.0.0/16"
+  vpc:availabilityZones: 3
+  
+  # RDS PostgreSQL (Keycloak)
+  db:instanceClass: db.t3.small
+  db:allocatedStorage: 100
+  db:multiAz: true
+  db:backupRetentionDays: 30
+  
+  # ECS Configuration
+  ecs:cpu: 2048
+  ecs:memory: 4096
+  ecs:desiredCount: 4
+  ecs:minCapacity: 4
+  ecs:maxCapacity: 10
+  
+  # OpenSearch Configuration
+  opensearch:instanceType: t3.medium.search
+  opensearch:instanceCount: 3
+  opensearch:volumeSize: 100
+  
+  # DynamoDB Configuration
+  dynamodb:billingMode: PAY_PER_REQUEST
+  
+  # Logging
+  logging:retentionDays: 30
+  
+  # Monitoring
+  monitoring:enabled: true
+  monitoring:alertEmail: alerts-prod@example.com
