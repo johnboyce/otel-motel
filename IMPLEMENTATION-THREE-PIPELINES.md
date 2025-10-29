@@ -75,21 +75,21 @@ make dev
 curl http://localhost:9200/_cat/indices/otel-motel-*?v
 ```
 
-Expected output shows three indices:
-- otel-motel-otel-direct-logs-*
-- otel-motel-gelf-logs-*
-- otel-motel-otel-vector-logs-*
+Expected output shows indices for all three pipelines:
+- otel-motel-otel-direct-logs (single index, no date pattern)
+- otel-motel-gelf-logs-YYYY.MM.DD (date-based rotation)
+- otel-motel-otel-vector-logs-YYYY.MM.DD (date-based rotation)
 
 ### Check Log Content
 ```bash
 # OTEL Direct
 curl -s "http://localhost:9200/otel-motel-otel-direct-logs/_search?size=1" | jq '.hits.hits[0]._source'
 
-# GELF
-curl -s "http://localhost:9200/otel-motel-gelf-logs-*/_search?size=1" | jq '.hits.hits[0]._source'
+# GELF (replace date with current date)
+curl -s "http://localhost:9200/otel-motel-gelf-logs-$(date +%Y.%m.%d)/_search?size=1" | jq '.hits.hits[0]._source'
 
-# OTEL-Vector (note the pipeline.source field)
-curl -s "http://localhost:9200/otel-motel-otel-vector-logs-*/_search?size=1" | jq '.hits.hits[0]._source'
+# OTEL-Vector (replace date with current date, note the pipeline.source field)
+curl -s "http://localhost:9200/otel-motel-otel-vector-logs-$(date +%Y.%m.%d)/_search?size=1" | jq '.hits.hits[0]._source'
 ```
 
 ## Test Results
@@ -97,7 +97,7 @@ curl -s "http://localhost:9200/otel-motel-otel-vector-logs-*/_search?size=1" | j
 Tested with application running:
 - ✅ All three pipelines successfully writing logs
 - ✅ Each pipeline writing to correct index
-- ✅ Equal document count across all pipelines (2159 docs each)
+- ✅ Approximately equal document counts across all pipelines
 - ✅ OTEL-Vector logs include `pipeline.source=otel-vector` metadata
 - ✅ All services (Vector, OTEL Collector, Elasticsearch) healthy
 
@@ -163,5 +163,7 @@ For users:
 - Index templates use ILM policies for automatic lifecycle management
 - All logs follow Elastic Common Schema (ECS)
 - Pipeline metadata (`pipeline.source`) helps identify log origin
-- Daily index rotation for GELF and OTEL-Vector (date-based pattern)
-- Single indices for OTEL Direct (no date pattern)
+- **Index Rotation Patterns**:
+  - OTEL Direct: Single index (`otel-motel-otel-direct-logs`) without date rotation
+  - GELF via Vector: Daily rotation (`otel-motel-gelf-logs-YYYY.MM.DD`)
+  - OTEL via Vector: Daily rotation (`otel-motel-otel-vector-logs-YYYY.MM.DD`)
