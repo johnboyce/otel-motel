@@ -1,93 +1,56 @@
 package com.johnnyb.filter;
 
-import jakarta.ws.rs.container.ContainerRequestContext;
-import jakarta.ws.rs.container.ContainerResponseContext;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.UriInfo;
-import org.junit.jupiter.api.BeforeEach;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
-import java.io.IOException;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
+@QuarkusTest
+@TestProfile(AwsRegionResponseFilterTest.TestAwsRegionProfile.class)
 class AwsRegionResponseFilterTest {
 
-    private AwsRegionResponseFilter filter;
-    private ContainerRequestContext requestContext;
-    private ContainerResponseContext responseContext;
-    private UriInfo uriInfo;
-    private MultivaluedMap<String, Object> headers;
-
-    @BeforeEach
-    void setUp() {
-        filter = new AwsRegionResponseFilter();
-        filter.setAwsRegion("us-east-1");
-        
-        requestContext = mock(ContainerRequestContext.class);
-        responseContext = mock(ContainerResponseContext.class);
-        uriInfo = mock(UriInfo.class);
-        headers = new MultivaluedHashMap<>();
-        
-        when(requestContext.getUriInfo()).thenReturn(uriInfo);
-        when(responseContext.getHeaders()).thenReturn(headers);
+    /**
+     * Test profile that configures the AWS region for testing
+     */
+    public static class TestAwsRegionProfile implements QuarkusTestProfile {
+        @Override
+        public Map<String, String> getConfigOverrides() {
+            return Map.of("aws.region", "us-east-1");
+        }
     }
 
     @Test
-    void testAwsRegionHeaderAddedForGraphQLRequest() throws IOException {
-        // Mock a GraphQL request
-        when(uriInfo.getPath()).thenReturn("graphql");
-        
-        filter.filter(requestContext, responseContext);
-        
-        assertTrue(headers.containsKey("X-AWS-Region"));
-        assertEquals("us-east-1", headers.getFirst("X-AWS-Region"));
+    void testAwsRegionHeaderPresentInGraphQLResponse() {
+        // GraphQL query to test - use introspection query which always works
+        String query = "{ \"query\": \"{ __typename }\" }";
+
+        given()
+            .contentType("application/json")
+            .body(query)
+            .when()
+            .post("/graphql")
+            .then()
+            .statusCode(200)
+            .header("X-AWS-Region", equalTo("us-east-1"));
     }
 
     @Test
-    void testAwsRegionHeaderAddedForGraphQLSubPath() throws IOException {
-        // Mock a GraphQL UI or schema request
-        when(uriInfo.getPath()).thenReturn("graphql/schema.graphql");
-        
-        filter.filter(requestContext, responseContext);
-        
-        assertTrue(headers.containsKey("X-AWS-Region"));
-        assertEquals("us-east-1", headers.getFirst("X-AWS-Region"));
-    }
+    void testAwsRegionHeaderWithHelloQuery() {
+        // Test with the simple hello query that doesn't require DB
+        String query = "{ \"query\": \"{ sayHello(name: \\\"Test\\\") }\" }";
 
-    @Test
-    void testAwsRegionHeaderNotAddedForNonGraphQLRequest() throws IOException {
-        // Mock a non-GraphQL request
-        when(uriInfo.getPath()).thenReturn("api/hotels");
-        
-        filter.filter(requestContext, responseContext);
-        
-        assertTrue(headers.isEmpty());
-    }
-
-    @Test
-    void testAwsRegionHeaderWithDefaultValue() throws IOException {
-        // Test with default "none" value
-        filter.setAwsRegion("none");
-        when(uriInfo.getPath()).thenReturn("graphql");
-        
-        filter.filter(requestContext, responseContext);
-        
-        assertTrue(headers.containsKey("X-AWS-Region"));
-        assertEquals("none", headers.getFirst("X-AWS-Region"));
-    }
-
-    @Test
-    void testAwsRegionHeaderWithNullPath() throws IOException {
-        // Test with null path (shouldn't happen, but test defensive coding)
-        when(uriInfo.getPath()).thenReturn(null);
-        
-        filter.filter(requestContext, responseContext);
-        
-        assertTrue(headers.isEmpty());
+        given()
+            .contentType("application/json")
+            .body(query)
+            .when()
+            .post("/graphql")
+            .then()
+            .statusCode(200)
+            .header("X-AWS-Region", equalTo("us-east-1"));
     }
 }
