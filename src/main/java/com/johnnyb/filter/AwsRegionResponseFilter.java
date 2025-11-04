@@ -16,7 +16,7 @@ public class AwsRegionResponseFilter implements ContainerResponseFilter {
     private static final String AWS_REGION_HEADER = "X-AWS-Region";
 
     @ConfigProperty(name = "aws.region", defaultValue = "none")
-    String awsRegion;
+    private String awsRegion;
 
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
@@ -26,5 +26,10 @@ public class AwsRegionResponseFilter implements ContainerResponseFilter {
             responseContext.getHeaders().add(AWS_REGION_HEADER, awsRegion);
             LOG.debugf("Added %s header with value: %s", AWS_REGION_HEADER, awsRegion);
         }
+    }
+
+    // Package-private setter for testing
+    void setAwsRegion(String awsRegion) {
+        this.awsRegion = awsRegion;
     }
 }

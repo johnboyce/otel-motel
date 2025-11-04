@@ -26,7 +26,7 @@ class AwsRegionResponseFilterTest {
     @BeforeEach
     void setUp() {
         filter = new AwsRegionResponseFilter();
-        filter.awsRegion = "us-east-1";
+        filter.setAwsRegion("us-east-1");
         
         requestContext = mock(ContainerRequestContext.class);
         responseContext = mock(ContainerResponseContext.class);
@@ -72,7 +72,7 @@ class AwsRegionResponseFilterTest {
     @Test
     void testAwsRegionHeaderWithDefaultValue() throws IOException {
         // Test with default "none" value
-        filter.awsRegion = "none";
+        filter.setAwsRegion("none");
         when(uriInfo.getPath()).thenReturn("graphql");
         
         filter.filter(requestContext, responseContext);
