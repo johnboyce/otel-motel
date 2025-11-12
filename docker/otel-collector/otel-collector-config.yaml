@@ -37,6 +37,9 @@ exporters:
   elasticsearch/otlphttp:
     endpoints: ["http://elasticsearch:9200"]
     logs_index: otel-motel-otlp-logs
+    pipeline: otel-motel-otlp-logs-ecs
+    mapping:
+      mode: ecs
 
   # Export logs to Vector via OTLP (Pipeline 3: OTEL -> Vector -> ELK)
   otlp/vector:
